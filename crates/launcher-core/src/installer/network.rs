@@ -133,7 +133,9 @@ impl Http {
         cancel: &Cancellation,
     ) -> Result<(serde_json::Value, Vec<u8>)> {
         for attempt in 0..3 {
-            match self.json_once(url, expected, cancel) {
+            let outcome = self.json_once(url, expected, cancel);
+            cancel.check()?;
+            match outcome {
                 Ok(value) => return Ok(value),
                 Err(Error::Network | Error::Integrity) if attempt < 2 => {
                     cancel.pause(Duration::from_millis(150 * (1 << attempt)))?

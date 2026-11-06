@@ -151,6 +151,7 @@ impl InstallEngine {
                         self.downloaded.fetch_add(n, Ordering::Relaxed);
                     })
                 });
+            self.cancel.check()?;
             match result {
                 Ok(()) => return Ok(()),
                 Err(Error::Network | Error::Integrity) if attempt < 2 => self

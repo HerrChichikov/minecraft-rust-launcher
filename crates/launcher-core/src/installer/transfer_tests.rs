@@ -177,3 +177,32 @@ fn upstream_policy_rejects_credentials_downgrades_and_arbitrary_hosts() -> Resul
     }
     Ok(())
 }
+
+#[test]
+fn cancelling_a_streamed_http_body_removes_the_partial()
+-> std::result::Result<(), Box<dyn std::error::Error>> {
+    let body = vec![42u8; 256 * 1024];
+    let server = Server::new(body.clone(), false)?;
+    let temp = tempfile::TempDir::new()?;
+    let (_service, store, _) = store(temp.path())?;
+    let http = Http::test(&server.base)?;
+    let cancel = Cancellation::default();
+    let resource = Resource::new(
+        "shared/assets/objects/streamed".into(),
+        Download {
+            url: server.base.clone(),
+            sha1: format!("{:x}", Sha1::digest(&body)),
+            size: body.len() as u64,
+        },
+    )?;
+    let response = http.response(&server.base, &cancel)?;
+    let outcome = store.publish(&resource, response, &cancel, |_| cancel.cancel());
+    assert!(matches!(outcome, Err(Error::Cancelled)));
+    assert!(!store.path(&resource.path)?.exists());
+    assert!(
+        std::fs::read_dir(store.path("shared/assets/objects")?)?
+            .next()
+            .is_none()
+    );
+    Ok(())
+}
