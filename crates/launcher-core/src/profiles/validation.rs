@@ -112,12 +112,12 @@ fn executable_file(path: &Path) -> Result<()> {
     let meta = std::fs::metadata(path).map_err(|_| Error::InvalidInput {
         field: "Java executable",
     })?;
-    let mut executable = meta.is_file();
+    let executable = meta.is_file();
     #[cfg(unix)]
-    {
+    let executable = {
         use std::os::unix::fs::PermissionsExt;
-        executable &= meta.permissions().mode() & 0o111 != 0;
-    }
+        executable && meta.permissions().mode() & 0o111 != 0
+    };
     if !executable {
         return Err(Error::InvalidInput {
             field: "Java executable",

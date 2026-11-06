@@ -606,3 +606,31 @@ fn child_crash_probe() -> Result {
     drop(service);
     Err("parent failed to terminate the lock holder".into())
 }
+
+#[test]
+fn switching_to_corrupt_profile_does_not_commit_the_new_root() -> Result {
+    let temp = TempDir::new()?;
+    let mut current = open(temp.path())?;
+    let a = current.snapshot()?;
+    let other_base = temp.path().join("other launcher");
+    let other = open(&other_base)?;
+    let b = other.snapshot()?;
+    let profile_path = b
+        .data_root
+        .join("profiles")
+        .join(b.active_profile_id.0.to_string())
+        .join("config.json");
+    drop(other);
+    let bytes = b"{\"schemaVersion\":99}";
+    fs::write(&profile_path, bytes)?;
+    let bootstrap_path = paths(temp.path()).configuration.join("launcher.json");
+    let before = fs::read(&bootstrap_path)?;
+    assert!(matches!(
+        current.switch_root(a.root_id, a.configuration_revision, &b.data_root),
+        Err(Error::UnsupportedSchema)
+    ));
+    assert_eq!(current.snapshot()?.root_id, a.root_id);
+    assert_eq!(fs::read(bootstrap_path)?, before);
+    assert_eq!(fs::read(profile_path)?, bytes);
+    Ok(())
+}

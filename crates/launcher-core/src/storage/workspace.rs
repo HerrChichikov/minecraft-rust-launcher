@@ -335,7 +335,14 @@ impl Root {
                 },
             )?;
         }
-        root.selection()?;
+        let selection = root.selection()?;
+        if !root
+            .list()?
+            .iter()
+            .any(|p| p.id == selection.active_profile_id)
+        {
+            return Err(Error::CorruptDocument);
+        }
         Ok(root)
     }
 

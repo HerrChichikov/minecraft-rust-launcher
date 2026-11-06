@@ -23,11 +23,11 @@ macOS ARM64, Rust 1.99.1 / Node 26.13.0:
 
 - `npm run check` — pass: format, ESLint, strict TS, **21 frontend tests**, production Vite build.
 - `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings` — pass.
-- `cargo test --workspace --locked` — pass: **23 core + 7 desktop tests** (включая два child-process helper tests).
+- `cargo test --workspace --locked` — pass: **24 core + 7 desktop tests** (включая два child-process helper tests).
 - Проверены restart round trip, Unicode/space paths, world isolation, switch/back без migration, stale writes, RAM/JVM validation, corrupt/future schemas, interrupted staging/JSON, pre/post commit faults, symlink denial, межпроцессные locks и освобождение после kill.
 - IPC tests: create/select/save пишет настоящий config; stale revision отказ; чужой window/remote origin не создаёт файлов. Auth/play/fs/shell остаются недоступными.
 
-Release guard, release IPC, package/GUI smoke и native matrix: ещё выполняются; результат будет внесён после завершения.
+Release guard core/desktop — pass. Release IPC — 7 tests pass. macOS ARM64 .app/.dmg собраны; npm audit — 0 vulnerabilities. GUI smoke и native matrix ещё выполняются.
 
 ## Ограничения и следующий этап
 
