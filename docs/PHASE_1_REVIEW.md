@@ -32,6 +32,8 @@
 
 Intel cross-build не равен native Intel запуску. Windows/Linux до успешного CI не объявляются build-verified. Полный игровой smoke относится к Phase 7: Minecraft ещё не установлен и не запускался.
 
+Первый CI run выявил Windows test-harness startup failure STATUS_ENTRYPOINT_NOT_FOUND. Добавлен Common Controls v6 manifest через linker для test executable и app согласно upstream Tauri issue; это исправление сборки, а не исключение тестов. Повторная матрица должна подтвердить его на Windows runner.
+
 ## Артефакты
 
 - ARM64 app: `target/release/bundle/macos/Launcher.app` (~6.76 MiB).

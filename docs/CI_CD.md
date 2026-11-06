@@ -19,6 +19,8 @@ Ubuntu 22.04; exact Node из `.node-version`; `npm ci --ignore-scripts`; `npm r
 
 Каждый desktop job: pinned Rust toolchain/components через repository toolchain file; clean npm install; frontend lint/build; rustfmt; Clippy all-targets; workspace tests; core development-feature tests; expected compile rejection release+dev-auth; release IPC tests с tauri/custom-protocol; Tauri locked bundle build. Windows/Linux не требуют наличия Java, поскольку игры на этом этапе ещё нет.
 
+Linux prerequisites устанавливаются noninteractive с ограниченными network timeouts/retries и 15-минутным лимитом шага. Windows test executables получают Common Controls v6 manifest через linker; тесты не исключаются из Windows matrix из-за upstream test-harness manifest bug.
+
 Actions checkout 7.0.1, setup-node 7.1.0, upload-artifact 7.0.2 закреплены по commit SHA официальных tags; checkout не сохраняет credentials. Artifacts имеют target в имени и retention 14 дней, публикуются только как внутренние run artifacts. Отсутствие package file — ошибка job. Rust build cache пока не добавлен: сначала подтверждается чистая матрица.
 
 ## Production guard

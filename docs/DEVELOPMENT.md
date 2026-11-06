@@ -52,6 +52,8 @@ npm run tauri -- build --ci -- --locked
 
 App name `Launcher` и bundle ID `dev.launcher.desktop` — рабочие значения foundation, их нужно согласовать до выпуска. macOS использует ad-hoc identity `-`: это не Developer ID и не notarization. Не запускаем production updater и не публикуем release автоматически.
 
+На Windows `build.rs` передаёт Common Controls v6 manifest через MSVC linker всем executable targets, включая unit-test harness. Стандартное Tauri embedding охватывает только application binary; без этого Windows cargo test может завершиться STATUS_ENTRYPOINT_NOT_FOUND до запуска тестов. Manifest не запрашивает administrator privileges. См. [upstream issue](https://github.com/tauri-apps/tauri/issues/13419).
+
 ## Реальные границы
 
 `ApplicationService::snapshot()` читает build/platform и возвращает feature availability. `src-tauri` превращает её в DTO schema v1; единственное разрешение main window — allow-get-snapshot. Другие окна/remote origin и login/play/fs/shell команды отклоняются в tests. Серверных запросов и произвольных filesystem APIs у frontend нет.

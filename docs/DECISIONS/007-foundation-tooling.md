@@ -13,3 +13,5 @@
 CI использует current native runners: macos-15-intel и macos-15, Windows 2022, Ubuntu 22.04 baseline. Actions pinned по commit SHA официальных release tags. Локальные инструменты установлены в ignored `.tools`, caches — в `.cache`; системный PATH не изменён.
 
 Phase 1 contracts не являются реализацией installer/provider/runtime. Единственный app command — read-only get_snapshot. Auth/Play commands, frontend filesystem/http/shell plugins отсутствуют. Dev-auth feature пока лишь compile-time reservation и guard, не mock login.
+
+Первая native Windows CI проверка выявила upstream Tauri test-harness issue: тестовый executable не получает Common Controls v6 manifest и падает с STATUS_ENTRYPOINT_NOT_FOUND до тестов. Используем [рекомендованное Tauri maintainers embedding](https://github.com/tauri-apps/tauri/issues/13419) через MSVC linker для всех executable targets, отключив дублирующее app-only manifest embedding. Target определяется CARGO_CFG_TARGET_OS, а не архитектурой build host. Тесты не отключаются и runner не подменяется ради обхода ошибки.
