@@ -220,7 +220,10 @@ fn write_with_publication<T: Serialize>(
 
 pub fn sync(dir: &Dir) -> Result<()> {
     #[cfg(unix)]
-    dir.try_clone()?.into_std_file().sync_all()?;
+    // Linux Dir capabilities may use O_PATH, which cannot be fsynced. Open a
+    // readable descriptor for this same directory relative to the held handle.
+    // The constant "." introduces no ambient lookup or user-controlled traversal.
+    dir.open_with(".", options().read(true))?.sync_all()?;
     #[cfg(not(unix))]
     let _ = dir;
     Ok(())
