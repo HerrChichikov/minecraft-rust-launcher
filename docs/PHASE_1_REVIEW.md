@@ -1,6 +1,6 @@
 # Phase 1 — Project Foundation
 
-Дата: 2026-11-06, Asia/Yekaterinburg. Переход к Phase 1 подтверждён пользователем. Ниже фактический локальный результат; cross-platform CI выполняется отдельно в [репозитории](https://github.com/HerrChichikov/minecraft-rust-launcher/actions).
+Дата: 2026-11-06, Asia/Yekaterinburg. **Phase 1 реализована и готова к review.** Переход к ней подтверждён пользователем. Все четыре native CI build targets и frontend quality завершились успешно в [run 42259358488](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42259358488), source commit `0f9480b9ac5058683728296472fe9325384e5283`.
 
 ## Реализовано
 
@@ -30,9 +30,18 @@
 | macOS Intel cross-build .app | Собран; binary architecture x86_64, ad-hoc signature verify pass |
 | macOS ARM64 / Intel .dmg | Созданы локальные внутренние packages; не notarized release |
 
-Intel cross-build не равен native Intel запуску. Windows/Linux до успешного CI не объявляются build-verified. Полный игровой smoke относится к Phase 7: Minecraft ещё не установлен и не запускался.
+Дополнительно подтверждена native CI matrix:
 
-Первый CI run выявил Windows test-harness startup failure STATUS_ENTRYPOINT_NOT_FOUND. Добавлен Common Controls v6 manifest через linker для test executable и app согласно upstream Tauri issue; это исправление сборки, а не исключение тестов. Повторная матрица должна подтвердить его на Windows runner.
+| Target | Проверки и packages |
+|---|---|
+| Windows x64 / MSVC | lint, typecheck/build, Rust tests/Clippy/guards, release IPC, NSIS .exe и WiX .msi — pass |
+| Linux x64 / Ubuntu 22.04 | native dependencies, lint/build, Rust tests/Clippy/guards, release IPC, .deb — pass |
+| macOS Intel / native Intel runner | lint/build, Rust tests/Clippy/guards, release IPC, .dmg — pass |
+| macOS ARM64 / native ARM runner | lint/build, Rust tests/Clippy/guards, release IPC, .dmg — pass |
+
+Точные job IDs, artifact digests и ссылки — в [CI validation report](validation/phase-1-ci.json). Это build/test/package evidence. GUI smoke реально выполнен локально на macOS ARM64; package installation и GUI на остальных системах не заявляются проверенными. Полный игровой smoke относится к Phase 7: Minecraft ещё не установлен и не запускался.
+
+Первый CI run выявил Windows test-harness startup failure STATUS_ENTRYPOINT_NOT_FOUND. Добавлен Common Controls v6 manifest через linker для test executable и app согласно upstream Tauri issue; это исправление сборки, а не исключение тестов. Повторная native Windows matrix подтвердила debug/release tests и оба packages.
 
 ## Артефакты
 
@@ -51,6 +60,8 @@ Artifacts не входят в source tree. Точные SHA256 локальны
 
 ## Критерии готовности и следующий этап
 
-Локальные foundation requirements выполнены. Полный cross-platform build criterion подтверждается только успешной четырёхплатформенной CI matrix; её run/results должны быть проверены перед объявлением Phase 1 полностью принятой. Наличие workflow не подменяет этот критерий. Native package install smoke и игра на всех платформах ещё впереди.
+Foundation requirements и cross-platform build criterion выполнены: проверены реальный успешный run, все 5 jobs и 4 uploaded artifacts. Phase 1 готова к пользовательскому review; это не завершённый MVP. Native package install smoke и игра на всех платформах ещё впереди.
+
+Фиксация итогового validation report меняет только documentation/data под docs/. Проверенный application source и workflow остаются на указанной CI revision; для documentation-only коммита используется skip-ci, чтобы не повторять ту же native matrix без изменения кода. Это не применяется к изменениям application/build/CI sources.
 
 Следующий этап после review — Phase 2 Storage & Profiles: schema validation, default profile, атомарные settings, безопасные пути, profile isolation и locks. Phase 2 не начата автоматически. Выбор real Ely.by flow остаётся решением до Phase 4 и не блокирует foundation/storage.

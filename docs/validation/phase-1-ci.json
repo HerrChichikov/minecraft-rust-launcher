@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-06",
+  "timezone": "Asia/Yekaterinburg",
+  "scope": "Phase 1 foundation build/test/package validation; not Minecraft gameplay or all-platform GUI smoke",
+  "repository": "HerrChichikov/minecraft-rust-launcher",
+  "branch": "codex/phase-1-foundation",
+  "testedSourceCommit": "0f9480b9ac5058683728296472fe9325384e5283",
+  "runId": 42259358488,
+  "runUrl": "https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42259358488",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "id": 128035082663,
+      "name": "Desktop / x86_64-pc-windows-msvc",
+      "conclusion": "success"
+    },
+    {
+      "id": 128035082991,
+      "name": "Desktop / aarch64-apple-darwin",
+      "conclusion": "success"
+    },
+    {
+      "id": 128035083076,
+      "name": "Frontend quality",
+      "conclusion": "success"
+    },
+    {
+      "id": 128035083165,
+      "name": "Desktop / x86_64-unknown-linux-gnu",
+      "conclusion": "success"
+    },
+    {
+      "id": 128035083336,
+      "name": "Desktop / x86_64-apple-darwin",
+      "conclusion": "success"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13526480918,
+      "name": "launcher-foundation-x86_64-apple-darwin",
+      "sizeBytes": 2636301,
+      "digest": "sha256:c84b258769e9e108397c8f78c0f024b25a8102e511bb55aaef56d96be9f6120d",
+      "expiresAt": "2026-11-20T17:38:14Z",
+      "url": "https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42259358488/artifacts/13526480918"
+    },
+    {
+      "id": 13525327111,
+      "name": "launcher-foundation-x86_64-pc-windows-msvc",
+      "sizeBytes": 4492839,
+      "digest": "sha256:a92448995dea4b7fbb9a2ceb944f34eb7c59be15e693ed1de4451fa33081ab8f",
+      "expiresAt": "2026-11-20T17:28:01Z",
+      "url": "https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42259358488/artifacts/13525327111"
+    },
+    {
+      "id": 13525156700,
+      "name": "launcher-foundation-x86_64-unknown-linux-gnu",
+      "sizeBytes": 2508833,
+      "digest": "sha256:dd470282d90ea9c9b68d9e817155380c19446983329cf562f906edaa4fdae8f3",
+      "expiresAt": "2026-11-20T17:22:30Z",
+      "url": "https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42259358488/artifacts/13525156700"
+    },
+    {
+      "id": 13524347304,
+      "name": "launcher-foundation-aarch64-apple-darwin",
+      "sizeBytes": 2445013,
+      "digest": "sha256:f1f9ec1cde63d0686a8f30117647ef80c95a72edde650926a8cc23fcbfebda9b",
+      "expiresAt": "2026-11-20T17:16:40Z",
+      "url": "https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42259358488/artifacts/13524347304"
+    }
+  ],
+  "nativeGuiSmoke": {
+    "platform": "macOS ARM64",
+    "result": "release app opened; core connected; Play disabled"
+  },
+  "limitations": [
+    "Game installer/authentication/launch remain future phases",
+    "Other-platform GUI/package-install smoke is not claimed",
+    "macOS bundles use ad-hoc signing and are not notarized"
+  ]
+}

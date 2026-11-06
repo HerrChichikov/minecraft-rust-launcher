@@ -2,6 +2,8 @@
 
 Создан [.github/workflows/ci.yml](../.github/workflows/ci.yml). Workflow запускается по push, pull_request и workflow_dispatch, с `contents: read`, отменой устаревших runs и без release publishing/signing secrets. Наличие YAML не равно успешному run: актуальные результаты перечислены в [Phase 1 review](PHASE_1_REVIEW.md).
 
+Phase 1 matrix подтверждена [успешным run 42259358488](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42259358488) на source commit `0f9480b9ac5058683728296472fe9325384e5283`: frontend quality и четыре native desktop jobs, 4 uploaded target artifacts. Фиксация этих результатов — documentation-only; application source и workflow после проверенного коммита не меняются.
+
 ## Quality job
 
 Ubuntu 22.04; exact Node из `.node-version`; `npm ci --ignore-scripts`; `npm run check` (Prettier/ESLint/strict TypeScript/Vitest/Vite build); `npm audit --audit-level=moderate`. Lock-файлы обязательны, dependencies не обновляются внутри CI.
