@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-06",
+  "timezone": "Asia/Yekaterinburg",
+  "scope": "foundation only; no game installed or launched",
+  "toolchains": {
+    "rust": "1.99.1",
+    "node": "26.13.0",
+    "npm": "11.20.0"
+  },
+  "checks": {
+    "frontendTests": 10,
+    "rustDebugTests": 7,
+    "desktopReleaseTests": 4,
+    "releaseDevAuthGuard": "pass for core and desktop",
+    "npmAuditVulnerabilities": 0,
+    "nativeArm64Ui": "pass: release core connected; Play disabled",
+    "intelBuild": "pass: cross-build only; native execution not tested"
+  },
+  "artifacts": [
+    {
+      "target": "aarch64-apple-darwin",
+      "path": "target/release/bundle/dmg/Launcher_0.1.0_aarch64.dmg",
+      "bytes": 2460669,
+      "sha256": "19cc7ab870e28b901866c20b25b1266ff05d72cfd265fbf4f3327f20c2a84e2e"
+    },
+    {
+      "target": "x86_64-apple-darwin",
+      "path": "target/x86_64-apple-darwin/release/bundle/dmg/Launcher_0.1.0_x64.dmg",
+      "bytes": 2654490,
+      "sha256": "c53c22da04f2091011c96076b0e46530fe33a9156e3e21be073b3cfa881fe68f"
+    }
+  ]
+}

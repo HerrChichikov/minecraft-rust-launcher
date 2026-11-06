@@ -1,0 +1,32 @@
+{
+  "name": "@launcher/frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "@tauri-apps/api": "2.12.4"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "vite": "8.3.6",
+    "@vitejs/plugin-react": "6.2.1",
+    "sass": "1.108.0",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "vitest": "5.1.0",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.8",
+    "@testing-library/jest-dom": "7.0.1",
+    "jsdom": "31.0.0"
+  }
+}

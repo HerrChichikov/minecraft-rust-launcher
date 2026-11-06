@@ -1,0 +1,87 @@
+{
+  "observed_date": "2026-11-06",
+  "timezone": "Asia/Yekaterinburg",
+  "purpose": "Phase 0 research snapshots, not launcher configuration",
+  "records": [
+    {
+      "file": "1.21.1.json",
+      "url": "https://piston-meta.mojang.com/v1/packages/82ba6501da174a665c1787775f946487422f2432/1.21.1.json",
+      "bytes": 38408,
+      "sha1": "82ba6501da174a665c1787775f946487422f2432",
+      "sha256": "3636c26c20f1f0b7472ebef1a624ba1a6a2c4b003858c13224929898b5321437",
+      "parent_verified": true
+    },
+    {
+      "file": "asset-index-17.json",
+      "url": "https://piston-meta.mojang.com/v1/packages/4ca8e1a1edd37a703c5d1594f71d409852cd9770/17.json",
+      "bytes": 449557,
+      "sha1": "4ca8e1a1edd37a703c5d1594f71d409852cd9770",
+      "sha256": "d197dd36d3d8bd75292b47e3d0478a5187e2f89ad1f033ed65b168a183c22ee9",
+      "parent_verified": true
+    },
+    {
+      "file": "authlib-injector-latest.json",
+      "url": "https://authlib-injector.yushi.moe/artifact/latest.json",
+      "bytes": 287,
+      "sha1": "ec49ee07ee1d503e7de487b2466d50d9cf9da889",
+      "sha256": "4941c9c8978a2ccbea2eea6e74cf18425c8eccd810580da0132cf59a7644c5b8",
+      "parent_verified": false
+    },
+    {
+      "file": "ely-api-metadata.json",
+      "url": "https://account.ely.by/api/authlib-injector",
+      "bytes": 1168,
+      "sha1": "ef784bb84def538c20b65833d287d539b5130d79",
+      "sha256": "1a5ba3e2f580fc260470d0a7ae6caafc4aa57169c2245fecf08424ccb9d2588d",
+      "parent_verified": false
+    },
+    {
+      "file": "java-runtime-all.json",
+      "url": "https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json",
+      "bytes": 13385,
+      "sha1": "0f47bc501bbc5009f34bdedb5a232d2ecce640fa",
+      "sha256": "b490908c9bda7f4ed5220145dee8dd1ee9ad92a210080adec3c183b0f0a50a8b",
+      "parent_verified": false
+    },
+    {
+      "file": "runtime-linux.json",
+      "url": "https://piston-meta.mojang.com/v1/packages/06a3884df3d9d4072b9b6df541495d81878ad2de/manifest.json",
+      "bytes": 82843,
+      "sha1": "06a3884df3d9d4072b9b6df541495d81878ad2de",
+      "sha256": "ae31d7572974ab73297c5f43abce9b60b8794ead7530953688174edf494142a0",
+      "parent_verified": true
+    },
+    {
+      "file": "runtime-mac-os-arm64.json",
+      "url": "https://piston-meta.mojang.com/v1/packages/78b4178415da0ae9c738e65dd66ac57e4c8a4bcc/manifest.json",
+      "bytes": 98233,
+      "sha1": "78b4178415da0ae9c738e65dd66ac57e4c8a4bcc",
+      "sha256": "ec4453a01d281c408b5e5a210a5783aea22adb54944f5d6335bba92dc25d9bf4",
+      "parent_verified": true
+    },
+    {
+      "file": "runtime-mac-os.json",
+      "url": "https://piston-meta.mojang.com/v1/packages/4a1d0bff88393d67292b2836efbb2d257df44a6a/manifest.json",
+      "bytes": 97949,
+      "sha1": "4a1d0bff88393d67292b2836efbb2d257df44a6a",
+      "sha256": "5aa7569419f7da6f898feaf76ba4a63cfcd8f89fc80bdf789b5ffb3b176e520b",
+      "parent_verified": true
+    },
+    {
+      "file": "runtime-windows-x64.json",
+      "url": "https://piston-meta.mojang.com/v1/packages/cb4394a27089d19f65d5baa6cf0482c27c3c7865/manifest.json",
+      "bytes": 148529,
+      "sha1": "cb4394a27089d19f65d5baa6cf0482c27c3c7865",
+      "sha256": "d2810cd0a87baf3980bbe256758de3ac4358801cc7b42fc3e74b7155ab5a67ff",
+      "parent_verified": true
+    },
+    {
+      "file": "version_manifest_v2.json",
+      "url": "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
+      "bytes": 278772,
+      "sha1": "9f88cab9b08b3529c106f9feb0dd16a971e6fc66",
+      "sha256": "0fcdf26b9cfeececdffee692ffd7dbfc4306c7260d1ab6c17de3798dfc64c2c4",
+      "parent_verified": false
+    }
+  ]
+}

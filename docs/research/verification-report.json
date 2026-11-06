@@ -1,0 +1,58 @@
+{
+  "status": "passed",
+  "checks": 5279,
+  "scope": "offline research metadata only; no binaries or application tested",
+  "versionMetadataSha1": "82ba6501da174a665c1787775f946487422f2432",
+  "placeholders": [
+    "assets_index_name",
+    "assets_root",
+    "auth_access_token",
+    "auth_player_name",
+    "auth_uuid",
+    "auth_xuid",
+    "classpath",
+    "clientid",
+    "game_directory",
+    "launcher_name",
+    "launcher_version",
+    "natives_directory",
+    "quickPlayMultiplayer",
+    "quickPlayPath",
+    "quickPlayRealms",
+    "quickPlaySingleplayer",
+    "resolution_height",
+    "resolution_width",
+    "user_type",
+    "version_name",
+    "version_type"
+  ],
+  "logicalAssets": 3911,
+  "uniqueAssets": 3888,
+  "platforms": {
+    "windows-x64": {
+      "version": "21.0.7",
+      "manifestSha1": "cb4394a27089d19f65d5baa6cf0482c27c3c7865",
+      "entries": 484,
+      "executable": "bin/java.exe"
+    },
+    "linux": {
+      "version": "21.0.7",
+      "manifestSha1": "06a3884df3d9d4072b9b6df541495d81878ad2de",
+      "entries": 423,
+      "executable": "bin/java"
+    },
+    "mac-os": {
+      "version": "21.0.7",
+      "manifestSha1": "4a1d0bff88393d67292b2836efbb2d257df44a6a",
+      "entries": 435,
+      "executable": "jre.bundle/Contents/Home/bin/java"
+    },
+    "mac-os-arm64": {
+      "version": "21.0.7",
+      "manifestSha1": "78b4178415da0ae9c738e65dd66ac57e4c8a4bcc",
+      "entries": 436,
+      "executable": "jre.bundle/Contents/Home/bin/java"
+    }
+  },
+  "agentDescriptorVersion": "1.2.8"
+}

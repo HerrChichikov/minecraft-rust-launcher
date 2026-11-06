@@ -1,0 +1,6 @@
+* text=auto eol=lf
+docs/research/*.json -text
+*.png binary
+*.ico binary
+*.icns binary
+

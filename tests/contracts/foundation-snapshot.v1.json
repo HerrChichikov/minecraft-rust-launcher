@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "phase": "foundation",
+  "launcherVersion": "0.1.0",
+  "targetMinecraftVersion": "1.21.1",
+  "platform": {
+    "os": "macos",
+    "architecture": "aarch64"
+  },
+  "developmentBuild": true,
+  "features": {
+    "profiles": false,
+    "installation": false,
+    "authentication": false,
+    "gameLaunch": false
+  }
+}
