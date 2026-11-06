@@ -27,3 +27,6 @@ pub use workspace::{ProfileLease, WorkspaceService, WorkspaceSnapshot};
 
 /// Stable storage identity used to reject stale IPC requests after root changes.
 pub type RootId = uuid::Uuid;
+
+mod resources;
+pub use resources::ResourceStore;

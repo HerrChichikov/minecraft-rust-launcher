@@ -13,7 +13,7 @@ fn foundation_does_not_advertise_unimplemented_features() -> Result<()> {
     let snapshot = ApplicationService.snapshot()?;
     assert_eq!(snapshot.target_minecraft_version, "1.21.1");
     assert!(snapshot.features.profiles);
-    assert!(!snapshot.features.installation);
+    assert!(snapshot.features.installation);
     assert!(!snapshot.features.authentication);
     assert!(!snapshot.features.game_launch);
     Ok(())

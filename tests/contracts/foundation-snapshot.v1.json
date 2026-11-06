@@ -10,7 +10,7 @@
   "developmentBuild": true,
   "features": {
     "profiles": true,
-    "installation": false,
+    "installation": true,
     "authentication": false,
     "gameLaunch": false
   }

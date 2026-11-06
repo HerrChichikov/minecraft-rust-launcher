@@ -545,3 +545,14 @@ h1 {
     flex-wrap: wrap;
   }
 }
+
+.installation-actions {
+  display: flex;
+  gap: 16px;
+  margin: 20px 0;
+}
+.profiles-card progress {
+  width: 100%;
+  height: 14px;
+  accent-color: #b6e98c;
+}

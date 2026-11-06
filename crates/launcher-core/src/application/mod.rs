@@ -34,7 +34,7 @@ impl ApplicationService {
             development_build: cfg!(debug_assertions),
             features: FeatureAvailability {
                 profiles: true,
-                installation: false,
+                installation: true,
                 authentication: false,
                 game_launch: false,
             },

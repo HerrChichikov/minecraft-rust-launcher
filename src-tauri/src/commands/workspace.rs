@@ -23,7 +23,7 @@ impl WorkspaceState {
     }
 }
 
-async fn execute<R: Runtime, T: Send + 'static>(
+pub(crate) async fn execute<R: Runtime, T: Send + 'static>(
     app: AppHandle<R>,
     action: impl FnOnce(&mut WorkspaceService) -> Result<T> + Send + 'static,
 ) -> std::result::Result<T, ApiError> {

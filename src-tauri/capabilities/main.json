@@ -9,6 +9,11 @@
     "allow-create-profile",
     "allow-select-profile",
     "allow-save-profile",
-    "allow-switch-data-root"
+    "allow-switch-data-root",
+    "allow-start-install",
+    "allow-get-installation",
+    "allow-cancel-install",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
   ]
 }

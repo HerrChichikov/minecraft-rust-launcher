@@ -188,3 +188,22 @@ fn storage_acl_rejects_untrusted_windows_and_origins_before_creating_files()
     assert!(!app._temp.path().join("data").exists());
     Ok(())
 }
+
+#[test]
+fn installer_state_and_cancel_are_scoped_and_unknown_operations_fail_closed()
+-> Result<(), Box<dyn std::error::Error>> {
+    let app = app()?;
+    let main = tauri::WebviewWindowBuilder::new(&app.app, "main", Default::default()).build()?;
+    assert!(call(&main, "get_installation", serde_json::json!({}))?.is_null());
+    let mut cancel = request("cancel_install", bundled_origin())?;
+    cancel.body = InvokeBody::Json(serde_json::json!({"request":{"operationId":"unknown"}}));
+    assert!(get_ipc_response(&main, cancel).is_err());
+    let secondary =
+        tauri::WebviewWindowBuilder::new(&app.app, "untrusted", Default::default()).build()?;
+    for command in ["start_install", "get_installation", "cancel_install"] {
+        assert!(get_ipc_response(&secondary, request(command, bundled_origin())?).is_err());
+        assert!(get_ipc_response(&main, request(command, "https://example.com")?).is_err());
+    }
+    assert!(!app._temp.path().join("data").exists());
+    Ok(())
+}

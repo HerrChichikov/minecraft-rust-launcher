@@ -66,3 +66,9 @@ DTO содержат `schemaVersion`, IDs, stage, progress, sequence. Errors: `c
 Коды ошибок: storage_busy, corrupt_document, unsupported_schema, revision_conflict, unsafe_path, invalid_settings, durability_failed, storage_failed. При durability_failed файл уже может быть опубликован; требуется refresh. Неизвестный код сводится к storage_failed. Profiles feature означает наличие реализации, а не успешное открытие любого повреждённого пользовательского root. Foundation bootstrap DTO phase="foundation" сохранён для совместимости протокола; этап UI — 02.
 
 ProfileRepository теперь sync contract для bounded локального I/O, вызываемого на blocking worker; будущие сетевые installer/auth/runtime contracts остаются async. Secret Session/LaunchSpec по-прежнему не являются IPC DTO.
+
+## Phase 3
+
+InstallEngine — синхронный concrete service, вызываемый только с blocking worker; прежние неиспользуемые InstallPlan/InstalledVersion/async Installer sketches заменены реальными VersionPlan/PreparedInstallation. plan получает Profile + RuleContext; prepare получает VersionPlan/platform/EventSink/RuntimeSelection. Operation ID и Cancellation принадлежат backend. ResourceStore удерживает root/profile/installation leases и не выдаёт UI filesystem handles.
+
+start_install request: rootId/profileId, без URL/executable/path; get_installation: current in-memory operation или null; cancel_install request: operationId, неизвестный ID запрещён. InstallationStatus schemaVersion=1 содержит operationId/profileId/profileName/stage/sequence/completedBytes/totalBytes/errorCode/terminal. Events launcher://installation направлены только main, не чаще 10 Hz для progress; terminal outcome всегда отправляется. Snapshot после reconnect восстанавливает последнюю операцию этого процесса; persisted installation descriptor не считается доказательством текущей integrity.

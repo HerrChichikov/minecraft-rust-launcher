@@ -16,13 +16,17 @@ fn configure_with_storage<R: Runtime>(
     builder
         .manage(ApplicationService)
         .manage(storage)
+        .manage(commands::installation::InstallationState::default())
         .invoke_handler(tauri::generate_handler![
             commands::snapshot::get_snapshot,
             commands::workspace::get_workspace,
             commands::workspace::create_profile,
             commands::workspace::select_profile,
             commands::workspace::save_profile,
-            commands::workspace::switch_data_root
+            commands::workspace::switch_data_root,
+            commands::installation::start_install,
+            commands::installation::get_installation,
+            commands::installation::cancel_install
         ])
 }
 

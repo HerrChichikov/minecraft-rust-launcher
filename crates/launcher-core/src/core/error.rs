@@ -7,6 +7,14 @@ pub type Result<T> = std::result::Result<T, LauncherError>;
 pub enum LauncherError {
     #[error("the requested operation is unavailable in this phase")]
     FeatureUnavailable,
+    #[error("invalid or unsupported upstream metadata")]
+    Metadata,
+    #[error("download failed")]
+    Network,
+    #[error("download integrity check failed")]
+    Integrity,
+    #[error("Java runtime is unavailable or incompatible")]
+    RuntimeIncompatible,
     #[error("invalid {field}")]
     InvalidInput { field: &'static str },
     #[error("the profile is already in use")]

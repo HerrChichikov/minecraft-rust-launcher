@@ -26,6 +26,25 @@ pub struct Platform {
 }
 
 impl Platform {
+    /// JVM platform defaults to the native host, including an x64 launcher under Rosetta.
+    pub fn current_host() -> Result<Self> {
+        let platform = Self::current_binary()?;
+        #[cfg(target_os = "macos")]
+        if platform.architecture == Architecture::X86_64 {
+            let output = std::process::Command::new("/usr/sbin/sysctl")
+                .args(["-in", "sysctl.proc_translated"])
+                .output()
+                .map_err(|_| LauncherError::UnsupportedPlatform)?;
+            if output.status.success() && String::from_utf8_lossy(&output.stdout).trim() == "1" {
+                return Ok(Self {
+                    architecture: Architecture::Aarch64,
+                    ..platform
+                });
+            }
+        }
+        Ok(platform)
+    }
+
     pub fn current_binary() -> Result<Self> {
         let os = match std::env::consts::OS {
             "windows" => OperatingSystem::Windows,

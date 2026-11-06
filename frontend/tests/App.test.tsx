@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/app/App';
 import { foundationSnapshot, workspaceFixture } from './fixtures';
 
+vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn().mockResolvedValue(() => {}) }));
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }));
 
 describe('foundation desktop screen', () => {
@@ -32,14 +33,15 @@ describe('foundation desktop screen', () => {
     vi.mocked(invoke)
       .mockRejectedValueOnce('private backend details')
       .mockResolvedValueOnce(foundationSnapshot)
-      .mockResolvedValueOnce(workspaceFixture);
+      .mockResolvedValueOnce(workspaceFixture)
+      .mockResolvedValueOnce(null);
     render(<App />);
     expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось подключиться');
     expect(screen.queryByText('private backend details')).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Повторить подключение' }));
     expect(await screen.findByText('Ядро подключено')).toBeInTheDocument();
-    expect(invoke).toHaveBeenCalledTimes(3);
+    expect(invoke).toHaveBeenCalledTimes(4);
   });
 
   it('shows a clear browser-only state without a fake core', async () => {
