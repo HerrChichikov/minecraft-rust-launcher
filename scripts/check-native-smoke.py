@@ -33,7 +33,10 @@ for name in ["JAVA_TOOL_OPTIONS", "_JAVA_OPTIONS", "JDK_JAVA_OPTIONS", "CLASSPAT
 with tempfile.TemporaryDirectory(prefix="launcher-native-") as folder:
     path = Path(folder) / "NativeProbe.java"
     path.write_text(source, encoding="utf-8")
-    arguments = [snapshot["javaExecutable"]]
+    executable=snapshot["javaExecutable"]
+    if sys.platform=="win32" and executable.startswith("\\\\?\\"):
+        raise RuntimeError("verbatim JVM execution path must be normalized by backend")
+    arguments = [executable]
     if sys.platform == "darwin":
         arguments.append("-XstartOnFirstThread")
     arguments += ["-Dorg.lwjgl.system.SharedLibraryExtractPath=" + str(Path(folder) / "natives"), "--class-path", classpath, "--source", "21", str(path)]

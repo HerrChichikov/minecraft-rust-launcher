@@ -85,7 +85,10 @@ pub(crate) fn install(
     if let RuntimeSelection::Custom { executable } = selection {
         filesystem::absolute(executable)?;
         probe(executable, major, platform, &engine.cancel)?;
-        return Ok(executable.to_str().ok_or(Error::UnsafePath)?.into());
+        return Ok(crate::runtime::execution_path(executable)?
+            .to_str()
+            .ok_or(Error::UnsafePath)?
+            .into());
     }
     let (catalog, _) = engine.http.json(CATALOG, None, &engine.cancel)?;
     let candidates = catalog[platform_key(platform)][component]
@@ -153,7 +156,9 @@ pub(crate) fn install(
                 OperatingSystem::Macos => "jre.bundle/Contents/Home/bin/java",
             };
             if valid {
-                let path = engine.store.path(&format!("{generation}/{executable}"))?;
+                let path = crate::runtime::execution_path(
+                    &engine.store.path(&format!("{generation}/{executable}"))?,
+                )?;
                 match probe(&path, major, platform, &engine.cancel) {
                     Ok(()) => {
                         engine.add_reused(verified_bytes);
@@ -227,12 +232,12 @@ pub(crate) fn install(
     engine.cancel.check()?;
     engine.store.publish_directory(&staging, &generation)?;
     engine.store.document(&format!("state/runtime-{key}-{component}.json"),&serde_json::json!({"schemaVersion":1,"manifestSha1":descriptor.sha1,"generation":generation,"files":resources}))?;
-    Ok(engine
-        .store
-        .path(&format!("{generation}/{executable}"))?
-        .to_str()
-        .ok_or(Error::UnsafePath)?
-        .into())
+    Ok(
+        crate::runtime::execution_path(&engine.store.path(&format!("{generation}/{executable}"))?)?
+            .to_str()
+            .ok_or(Error::UnsafePath)?
+            .into(),
+    )
 }
 fn probe(
     path: &std::path::Path,
@@ -240,13 +245,14 @@ fn probe(
     platform: Platform,
     cancel: &Cancellation,
 ) -> Result<()> {
+    let path = crate::runtime::execution_path(path)?;
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .map_err(|_| Error::RuntimeIncompatible)?;
     let bytes=runtime.block_on(async {
         use tokio::io::AsyncReadExt;
-        let mut command=tokio::process::Command::new(path);
+        let mut command=tokio::process::Command::new(&path);
         command.args(["-XshowSettings:properties","-version"]).kill_on_drop(true).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
         for name in ["JAVA_TOOL_OPTIONS","_JAVA_OPTIONS","JDK_JAVA_OPTIONS","CLASSPATH","LD_PRELOAD","LD_LIBRARY_PATH","DYLD_INSERT_LIBRARIES","DYLD_LIBRARY_PATH","DYLD_FRAMEWORK_PATH"] {command.env_remove(name);}
         let mut child=command.spawn().map_err(|_|Error::RuntimeIncompatible)?;
@@ -282,10 +288,9 @@ fn probe(
     };
     if property("java.specification.version") != Some(major.to_string().as_str())
         || property("os.arch")
-            != Some(match platform.architecture {
-                Architecture::X86_64 => "amd64",
-                Architecture::Aarch64 => "aarch64",
-            })
+            .map(crate::runtime::java_architecture)
+            .transpose()?
+            .is_none_or(|arch| arch != platform.architecture)
     {
         return Err(Error::RuntimeIncompatible);
     }

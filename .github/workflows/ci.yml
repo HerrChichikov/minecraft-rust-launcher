@@ -62,8 +62,9 @@ jobs:
         if: runner.os == 'Linux'
         timeout-minutes: 15
         run: |
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
-          sudo env DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev librsvg2-dev patchelf
+          sudo env DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y --no-install-recommends libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev librsvg2-dev patchelf
       - name: Install pinned Rust toolchain
         run: rustup show
       - name: Check Rust target architecture
@@ -86,10 +87,22 @@ jobs:
         timeout-minutes: 25
         shell: bash
         run: |
+          trap 'cat install-smoke.log install-reuse.log 2>/dev/null || true' ERR
           cargo run -p launcher-core --example install_smoke --locked -- "$RUNNER_TEMP/launcher-install-smoke" > install-smoke.log 2>&1
           cargo run -p launcher-core --example install_smoke --locked -- "$RUNNER_TEMP/launcher-install-smoke" > install-reuse.log 2>&1
           python3 scripts/check-install-reuse.py install-reuse.log
           python3 scripts/check-native-smoke.py install-reuse.log "$RUNNER_TEMP/launcher-install-smoke"
+      - name: Upload installer smoke receipts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: installer-smoke-${{ matrix.target }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            install-smoke.log
+            install-reuse.log
+            hs_err_pid*.log
       - name: Package desktop application
         run: npm run tauri -- build --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} -- --locked
       - name: Upload internal build artifacts
