@@ -11,13 +11,16 @@ default = []
 dev-auth = []
 
 [dependencies]
+cap-std = "4.0.3"
+cap-fs-ext = "4.0.3"
 serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 uuid.workspace = true
 zeroize.workspace = true
 
 [dev-dependencies]
-serde_json.workspace = true
+tempfile = "3.27"
 
 [lints]
 workspace = true

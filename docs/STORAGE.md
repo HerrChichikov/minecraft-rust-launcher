@@ -1,6 +1,6 @@
 # Хранилище и профили
 
-Статус: предложение Phase 2. Filesystem adapter в desktop передаёт core абсолютный app data root из Tauri path resolver. Не пишем в `.app`, Program Files, cwd приложения или системную `.minecraft`.
+Статус: реализовано в Phase 2; точный контракт — [ADR-008](DECISIONS/008-storage-profiles.md). Filesystem adapter в desktop передаёт core абсолютный app data root из Tauri path resolver. Не пишем в `.app`, Program Files, cwd приложения или системную `.minecraft`.
 
 ## Размещение
 
@@ -8,6 +8,8 @@
 
 ```text
 <data-root>/
+  root.json                    # schemaVersion + rootId
+  .launcher-root.lock          # OS lease, existence is not occupancy
   profiles/<profile-uuid>/
     config.json
     game/                      # saves, options, screenshots; не перезаписываем repair
@@ -22,6 +24,7 @@
     runtimes/<platform>/<component>/<manifest-sha1>/
     agents/<sha256>/authlib-injector.jar
   state/
+    root-settings.json         # activeProfileId, rootId, revision
     verification-index.json
     accounts.json              # credential references, no secrets
     runs.json                  # diagnostic/reconciliation identity, no token
@@ -45,3 +48,11 @@ Profile ID принимается как UUID, display name не станови�
 Все managed parents проверяются `symlink_metadata`, без прохождения неожиданных symlinks/reparse points. Runtime links обрабатываются особой ограниченной политикой из [Java docs](JAVA_RUNTIME.md). Для native extraction не допускаем ZIP symlinks, traversal, absolute paths и zip bombs. Возможная local race между check/open — отдельный риск; нужен no-follow/handle-based подход там, где platform APIs позволяют. Не заявляем защиту от администратора или процесса с теми же правами, изменяющего managed tree.
 
 Locks: OS-backed app/root lock и profile/resource lock. Существование старого lock-файла после crash не означает занятость; lock удерживается ОС. Runtime generation нельзя удалить или заменить, пока есть живой пользователь JVM. Cleanup ограничен собственными `.part`/run staging после проверки, что они не используются.
+
+## Реализованный контракт Phase 2
+
+Bootstrap `<configuration>/launcher.json`: `{schemaVersion:1, revision, dataRoot}`. Root marker: `{schemaVersion:1, rootId}`. Root settings: `{schemaVersion:1, rootId, revision, activeProfileId}`. Profile `config.json`: `{schemaVersion:1, revision, id, name, minecraftVersion:"1.21.1", settings:{minRamMib,maxRamMib,runtime,extraJvmArgs}}`. Game path всегда выводится из UUID, не хранится как редактируемая строка.
+
+Default root — `app_local_data_dir()/data`. Cache/log paths разрешаются Tauri и передаются core; Phase 2 не создаёт в них runtime/installer data. Accounts/runs records и содержимое shared — последующие этапы. Verification index создаётся лениво при первом backend обращении; UI не редактирует его. Ключ records — проверенный `shared/...` relative path; record содержит expectedSha1/expectedSize/observedSize/modifiedUnixNs/verifiedUnixMs/optional fileIdentity, rootId принадлежит всему индексу. Эти hints нельзя использовать как готовое подтверждение hash без Phase 3 validation.
+
+Ограничения: JSON <=1 MiB, <=128 profiles (bounded scan <=512 entries), <=4096 cache records. Повреждённый индекс карантинируется; более новая schema не заменяется. Коррумпированный profile/config требует восстановления исходного файла: автосброса нет. Staging `.creating-*`/`.write-*.tmp` после crash не принимается за опубликованный документ. Старые schemas для migration отсутствуют; смена root — отдельная проверенная операция без переноса данных.

@@ -33,7 +33,7 @@ impl ApplicationService {
             platform: Platform::current_binary()?,
             development_build: cfg!(debug_assertions),
             features: FeatureAvailability {
-                profiles: false,
+                profiles: true,
                 installation: false,
                 authentication: false,
                 game_launch: false,

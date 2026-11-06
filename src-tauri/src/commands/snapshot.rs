@@ -13,9 +13,31 @@ pub struct ApiError {
     retryable: bool,
 }
 
+impl ApiError {
+    fn storage(code: &'static str, retryable: bool) -> Self {
+        Self {
+            code,
+            message_key: "errors.storage",
+            retryable,
+        }
+    }
+}
+
 impl From<LauncherError> for ApiError {
     fn from(error: LauncherError) -> Self {
         match error {
+            LauncherError::StorageBusy | LauncherError::ProfileBusy => {
+                Self::storage("storage_busy", true)
+            }
+            LauncherError::CorruptDocument => Self::storage("corrupt_document", false),
+            LauncherError::UnsupportedSchema => Self::storage("unsupported_schema", false),
+            LauncherError::RevisionConflict => Self::storage("revision_conflict", true),
+            LauncherError::UnsafePath | LauncherError::UnmanagedDirectory => {
+                Self::storage("unsafe_path", false)
+            }
+            LauncherError::InvalidInput { .. } => Self::storage("invalid_settings", false),
+            LauncherError::Durability(_) => Self::storage("durability_failed", true),
+            LauncherError::Storage(_) => Self::storage("storage_failed", true),
             LauncherError::UnsupportedPlatform => Self {
                 code: "unsupported_platform",
                 message_key: "errors.unsupportedPlatform",

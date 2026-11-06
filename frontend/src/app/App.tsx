@@ -1,3 +1,4 @@
+import { ProfilesPanel } from '../features/profiles/ProfilesPanel';
 import { FoundationStatus } from '../features/foundation/FoundationStatus';
 import { useFoundation } from '../features/foundation/useFoundation';
 
@@ -31,7 +32,7 @@ export function App() {
 
         <div className="sidebar-footer">
           <span className="small-label">Этап разработки</span>
-          <strong>01 / Основа проекта</strong>
+          <strong>02 / Профили и настройки</strong>
           <p>Java Edition</p>
         </div>
       </aside>
@@ -42,16 +43,16 @@ export function App() {
             <p className="eyebrow">Minecraft Java Edition</p>
             <h1>Ваше пространство для игры</h1>
           </div>
-          <span className="phase-badge">Foundation</span>
+          <span className="phase-badge">Storage & Profiles</span>
         </header>
 
         <section className="welcome-card" aria-labelledby="welcome-title">
           <div className="welcome-copy">
-            <span className="release-label">Первый этап</span>
+            <span className="release-label">Второй этап</span>
             <h2 id="welcome-title">Начало нового мира.</h2>
             <p>
-              Основа лаунчера: desktop-оболочка, интерфейс и независимое игровое ядро. Установка и
-              запуск появятся на следующих этапах.
+              Создавайте отдельные конфигурации и сохраняйте настройки игры. Установка и запуск
+              появятся на следующих этапах.
             </p>
             <div className="play-area">
               <button
@@ -91,16 +92,18 @@ export function App() {
           <FoundationStatus state={state} retry={retry} />
           <section className="next-card" aria-labelledby="next-title">
             <p className="eyebrow">Дальше по плану</p>
-            <h2 id="next-title">Профили и настройки</h2>
+            <h2 id="next-title">Установка Minecraft</h2>
             <p className="muted">
-              Отдельная игровая папка, сохранение конфигурации и безопасная работа с файлами.
+              Загрузка Minecraft 1.21.1, библиотек, ресурсов и управляемой Java.
             </p>
             <div className="next-step">
-              <span>02</span>
-              <strong>Storage & Profiles</strong>
+              <span>03</span>
+              <strong>Minecraft Installer</strong>
             </div>
           </section>
         </div>
+
+        {state.status === 'ready' && <ProfilesPanel />}
 
         <footer className="page-footer">
           <span>Статус функций отображается без демонстрационных данных.</span>

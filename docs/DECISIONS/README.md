@@ -13,3 +13,5 @@ ADR 001–006 приняты вместе с подтверждением Phase 
 | [007](007-foundation-tooling.md) | Совместимый toolchain, security override и минимальный граф Phase 1 |
 
 Изменение решения обновляет ADR с причиной и последствиями. Новое решение, отменяющее старое, связывается ссылкой; история не стирается.
+
+- [ADR-008: локальное хранилище и профили](008-storage-profiles.md) — schemas, capability paths, locks, atomic publication, root switching.

@@ -6,9 +6,24 @@ use launcher_core::application::ApplicationService;
 use tauri::Runtime;
 
 fn configure<R: Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
+    configure_with_storage(builder, commands::workspace::WorkspaceState::default())
+}
+
+fn configure_with_storage<R: Runtime>(
+    builder: tauri::Builder<R>,
+    storage: commands::workspace::WorkspaceState,
+) -> tauri::Builder<R> {
     builder
         .manage(ApplicationService)
-        .invoke_handler(tauri::generate_handler![commands::snapshot::get_snapshot])
+        .manage(storage)
+        .invoke_handler(tauri::generate_handler![
+            commands::snapshot::get_snapshot,
+            commands::workspace::get_workspace,
+            commands::workspace::create_profile,
+            commands::workspace::select_profile,
+            commands::workspace::save_profile,
+            commands::workspace::switch_data_root
+        ])
 }
 
 pub fn run() -> tauri::Result<()> {

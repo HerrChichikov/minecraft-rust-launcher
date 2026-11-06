@@ -1,6 +1,7 @@
-//! Profile model and persistence boundary. Disk persistence is implemented in Phase 2.
+//! Profile documents. Filesystem operations run on the desktop blocking worker.
 
-use std::future::Future;
+pub(crate) mod validation;
+pub use validation::SettingsPolicy;
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -24,16 +25,17 @@ pub struct LaunchSettings {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Profile {
     pub schema_version: u32,
+    pub revision: u32,
     pub id: ProfileId,
     pub name: String,
     pub minecraft_version: String,
     pub settings: LaunchSettings,
 }
 
-/// Implementations validate settings and derive directories from the backend-owned ID.
+/// Local repository operations must be called from a blocking worker.
 pub trait ProfileRepository: Send + Sync {
-    fn load(&self, id: ProfileId) -> impl Future<Output = Result<Profile>> + Send;
-    fn create(&self, name: &str) -> impl Future<Output = Result<Profile>> + Send;
-    fn save(&self, profile: &Profile) -> impl Future<Output = Result<()>> + Send;
-    fn list(&self) -> impl Future<Output = Result<Vec<Profile>>> + Send;
+    fn load(&self, id: ProfileId) -> Result<Profile>;
+    fn create(&self, name: &str) -> Result<Profile>;
+    fn save(&self, profile: &Profile) -> Result<()>;
+    fn list(&self) -> Result<Vec<Profile>>;
 }

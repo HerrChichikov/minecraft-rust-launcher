@@ -1,10 +1,10 @@
 # Зависимости
 
-Статус: в Phase 1 созданы Cargo/npm manifests и **Cargo.lock + package-lock.json**. Toolchain: Rust 1.99.1, Node 26.13.0, bundled npm 11.20.0. Прямые npm dependencies закреплены exact. Ниже исходный план полного MVP; dependencies следующих этапов не добавлены заранее.
+Статус: Phase 2 расширяет созданные в Phase 1 Cargo/npm manifests и **Cargo.lock + package-lock.json**. Toolchain: Rust 1.99.1, Node 26.13.0, bundled npm 11.20.0. Прямые npm dependencies закреплены exact. Ниже исходный план полного MVP; dependencies следующих этапов не добавлены заранее.
 
 ## Реальный набор Phase 1
 
-- Rust core: serde 1.0.229, thiserror 2.0.21, uuid 1.29.0, zeroize 1.9.1; serde_json 1.0.154 для tests. Desktop: tauri 2.12.5, tauri-build 2.7.4 и те же shared declarations.
+- Rust core: serde 1.0.229, thiserror 2.0.21, uuid 1.29.0, zeroize 1.9.1; serde_json 1.0.154 для persistence и tests. Desktop: tauri 2.12.5, tauri-build 2.7.4 и те же shared declarations.
 - Frontend: React/React DOM 19.3.1, TypeScript 6.0.3, Vite 8.3.6, React plugin 6.2.1, Sass 1.108.0, Tauri API/CLI 2.12.4.
 - Checks: ESLint 10.14.0, typescript-eslint 8.72.1, Prettier 3.9.10, Vitest 5.1.0, Testing Library React 16.3.3 / user-event 14.6.8 / jest-dom 7.0.1, jsdom 31.0.0. Остальные exact versions — в manifests/lock.
 - TypeScript 7 не выбран из-за официального peer range lint tooling. Scoped compatibility decision и minimatch security override описаны в [ADR-007](DECISIONS/007-foundation-tooling.md).
@@ -55,3 +55,12 @@ JSON index вместо SQLite, raw runtime вместо LZMA, native JAR loader
 - [Tokio docs](https://docs.rs/tokio/latest/tokio/process/index.html) — 1.54.1; [keyring docs](https://docs.rs/keyring/latest/keyring/) — 4.2.0. Это наблюдения источников, не уже разрешённый dependency graph.
 
 Непроверенные точные patch numbers других пакетов намеренно не выдаются за актуальные. Перед merge Phase 1: `cargo metadata`/`npm ls`, clean locked install, четыре target builds, license inventory и audit report. Не игнорируем peer-dependency errors через force.
+
+## Добавлено в Phase 2 (2026-11-07)
+
+- cap-std и cap-fs-ext **4.0.3**: capability-relative filesystem + no-follow open, вместо check-then-open абсолютных managed paths. [Dir API](https://docs.rs/cap-std/4.0.3/cap_std/fs/struct.Dir.html), [DirExt](https://docs.rs/cap-fs-ext/4.0.3/cap_fs_ext/trait.DirExt.html), [OpenOptionsFollowExt](https://docs.rs/cap-fs-ext/4.0.3/cap_fs_ext/trait.OpenOptionsFollowExt.html).
+- sysinfo **0.40.1**, default-features=false, только system: physical RAM для desktop SettingsPolicy. System::new в этой версии возвращает Result; ошибка не подменяется выдуманным объёмом RAM. [System API](https://docs.rs/sysinfo/0.40.1/sysinfo/struct.System.html).
+- tempfile **3.27.0**: только dev dependencies core/desktop, изолированное filesystem тестирование.
+- OS locks использует std::fs::File::try_lock без дополнительного lock crate. Rust 1.99.1 уже поддерживает API. [std File](https://doc.rust-lang.org/std/fs/struct.File.html#method.try_lock).
+
+Новых frontend dependencies нет. Runtime downloads, hash libraries, OS credentials и archive parsers не добавлены. Обоснование и границы — ADR-008.

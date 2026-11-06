@@ -20,8 +20,10 @@ tauri-build = { version = "2", features = [] }
 launcher-core.workspace = true
 serde.workspace = true
 tauri = { version = "2", features = [] }
+sysinfo = { version = "0.40.1", default-features = false, features = ["system"] }
 
 [dev-dependencies]
+tempfile = "3.27"
 serde_json.workspace = true
 tauri = { version = "2", features = ["test"] }
 

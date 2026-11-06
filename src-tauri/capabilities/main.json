@@ -1,7 +1,14 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main",
-  "description": "Read-only bootstrap access from the bundled main window",
+  "description": "Profile and storage access from the bundled main window",
   "windows": ["main"],
-  "permissions": ["allow-get-snapshot"]
+  "permissions": [
+    "allow-get-snapshot",
+    "allow-get-workspace",
+    "allow-create-profile",
+    "allow-select-profile",
+    "allow-save-profile",
+    "allow-switch-data-root"
+  ]
 }

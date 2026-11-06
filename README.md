@@ -2,7 +2,7 @@
 
 Основа desktop-лаунчера Minecraft Java Edition на Tauri 2, Rust и React / TypeScript / SCSS / Vite.
 
-**Текущий этап — Phase 1.** Работают desktop-оболочка, подключение к независимому Rust core и диагностика сборки. Установка Minecraft, Java, профили, авторизация и запуск игры ещё не реализованы; кнопка «Играть» отключена. Функциональность следующих этапов описана интерфейсами, без фиктивных успешных ответов.
+**Текущий этап — Phase 2: Storage & Profiles.** Работают создание/выбор профилей, сохранение RAM/Java/JVM-настроек, отдельные игровые папки и переключение хранилища. Установка Minecraft/Java, авторизация и запуск игры ещё не реализованы; «Играть» отключена. Проверки и ограничения — в [отчёте Phase 2](docs/PHASE_2_REVIEW.md).
 
 ## Запуск разработки
 
@@ -37,16 +37,16 @@ npm run tauri -- build --ci -- --locked
 
 ## Структура
 
-- `frontend/` — экран foundation, typed IPC client, unit tests, SCSS.
-- `crates/launcher-core/` — независимый bootstrap, типизированные ошибки и contracts для следующих этапов.
-- `src-tauri/` — read-only `get_snapshot`, DTO, ACL/CSP и desktop packaging.
+- `frontend/` — экран профилей и диагностики, typed IPC clients, unit tests, SCSS.
+- `crates/launcher-core/` — независимое файловое хранилище, профили, validation и contracts следующих этапов.
+- `src-tauri/` — `get_snapshot` и ограниченные profile/storage commands, DTO, ACL/CSP и desktop packaging.
 - `tests/contracts/` — общий Rust/TypeScript wire-contract fixture.
 - `.github/workflows/ci.yml` — pinned quality checks и build matrix Windows x64 / Linux x64 / macOS Intel / macOS ARM64; без публичного release.
 - `docs/` — архитектура, ADR, исследования и отчёты.
 
 ## Результаты и документация
 
-Начните с [отчёта Phase 1](docs/PHASE_1_REVIEW.md): он разделяет реальные локальные результаты и ещё не проверенные платформы. [Phase 0](docs/PHASE_0_REVIEW.md) — историческое исследование, согласованное пользователем.
+Начните с [отчёта Phase 2](docs/PHASE_2_REVIEW.md). [Phase 1](docs/PHASE_1_REVIEW.md) содержит исторические результаты foundation. [Phase 0](docs/PHASE_0_REVIEW.md) — историческое исследование, согласованное пользователем.
 
 | Документ                                   | Содержание                                   |
 | ------------------------------------------ | -------------------------------------------- |
@@ -55,7 +55,7 @@ npm run tauri -- build --ci -- --locked
 | [Контракты](docs/INTERFACES.md)            | Реальный bootstrap и целевые API             |
 | [Модель данных](docs/DATA_MODEL.md)        | Профили, аккаунты, установки, состояние      |
 | [Разработка](docs/DEVELOPMENT.md)          | Toolchain, команды, smoke и ограничения      |
-| [Зависимости](docs/DEPENDENCIES.md)        | Реальный graph Phase 1 и план MVP            |
+| [Зависимости](docs/DEPENDENCIES.md)        | Реальный graph и план MVP                    |
 | [ADR](docs/DECISIONS/README.md)            | Обоснования решений                          |
 | [CI/CD](docs/CI_CD.md)                     | Матрица, пакеты и signing                    |
 | [Тестирование](docs/TEST_PLAN.md)          | План полного MVP                             |
@@ -65,4 +65,4 @@ npm run tauri -- build --ci -- --locked
 
 Исследовательские снимки проверяются offline: `python3 docs/research/verify_snapshot.py`. Эта проверка не заменяет application tests.
 
-Phase 2 не начинается автоматически. Перед публичным выпуском нужны реальная авторизация, игровой smoke на всех платформах и согласованная подпись/распространение.
+Phase 3 не начинается автоматически. Перед публичным выпуском нужны реальная авторизация, игровой smoke на всех платформах и согласованная подпись/распространение.

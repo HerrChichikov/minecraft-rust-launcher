@@ -1,11 +1,11 @@
 # Модель данных
 
-Статус: проект контрактов. Все JSON с `schemaVersion`; миграция пишет новую версию атомарно, неизвестная более новая схема даёт явную ошибку без перезаписи.
+Статус: Phase 2 реализует Profile/LaunchSettings/RuntimeSelection и root/config/index schemas; остальные типы ниже остаются планом. Все JSON с `schemaVersion`; миграция пишет новую версию атомарно, неизвестная более новая схема даёт явную ошибку без перезаписи.
 
 | Тип | Поля и инварианты |
 |---|---|
 | `ProfileId` | UUID v4, генерирует backend; не имя папки от пользователя |
-| `Profile` | id, displayName, minecraftVersion, relativeGameDir, settings, schemaVersion; в MVP version=1.21.1 |
+| `Profile` | id, name, minecraftVersion, settings, schemaVersion=1, revision; game directory выводится из UUID, version=1.21.1 |
 | `LauncherSettings` | dataRoot, activeProfileId, selectedAccountId; без токенов |
 | `LaunchSettings` | minRamMiB, maxRamMiB, runtimeSelection, extraJvmArgs: список строк |
 | `RuntimeSelection` | Managed или Custom с абсолютным executable path; custom проверяется перед каждым запуском |
@@ -33,3 +33,5 @@ Installation state: `Initializing → Checking → Downloading/Repairing → Ext
 Процент этапа считаем из известных totals; общий прогресс становится determinate после планирования. Хеширование и извлечение показывают собственные счётчики. Скорость считается по фактически полученным байтам и монотонному времени; ожидание HTTP не изображается как продвижение.
 
 Все значения с числовыми размерами проверяются на overflow до вычисления byte counts. Длительности и timeout — monotonic; timestamps нужны для диагностики, не для доказательства целостности.
+
+Реальные storage JSON schemas и ограничения — в [STORAGE](STORAGE.md), wire fields — в [INTERFACES](INTERFACES.md).

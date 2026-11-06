@@ -10,8 +10,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
-    let mut attributes = tauri_build::Attributes::new()
-        .app_manifest(tauri_build::AppManifest::new().commands(&["get_snapshot"]));
+    let mut attributes =
+        tauri_build::Attributes::new().app_manifest(tauri_build::AppManifest::new().commands(&[
+            "get_snapshot",
+            "get_workspace",
+            "create_profile",
+            "select_profile",
+            "save_profile",
+            "switch_data_root",
+        ]));
 
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
         let manifest = std::path::PathBuf::from(std::env::var("CARGO_MANIFEST_DIR")?)

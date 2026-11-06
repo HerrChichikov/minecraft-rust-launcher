@@ -439,3 +439,109 @@ h1 {
     scroll-behavior: auto !important;
   }
 }
+
+.profiles-card {
+  margin-top: 24px;
+  padding: 28px;
+  border: 1px solid #2b3833;
+  border-radius: 20px;
+  background: #151e1b;
+  h2,
+  h3 {
+    margin: 0 0 16px;
+  }
+  label {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: #d6e0da;
+    font-size: 14px;
+  }
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid #405148;
+    border-radius: 8px;
+    background: #101713;
+    color: #edf4ee;
+    font: inherit;
+    &:focus-visible {
+      outline: 2px solid #a1db7c;
+      outline-offset: 2px;
+    }
+    &:disabled {
+      opacity: 0.55;
+    }
+  }
+  textarea {
+    resize: vertical;
+  }
+  form {
+    min-width: 0;
+  }
+  .button {
+    font-size: 13px;
+  }
+}
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(280px, 2fr);
+  gap: 32px;
+  margin-top: 16px;
+}
+.profile-fields {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  legend {
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+}
+.ram-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.field-help {
+  margin: 0 0 20px;
+  color: #9daf9f;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.root-settings {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #2b3833;
+}
+.data-path {
+  color: #a1db7c;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.storage-error {
+  border-left: 3px solid #e7a88b;
+  padding: 12px 16px;
+  background: #30251e;
+  color: #ffdbc5;
+  line-height: 1.6;
+}
+@media (max-width: 850px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+  .section-heading {
+    flex-wrap: wrap;
+  }
+}

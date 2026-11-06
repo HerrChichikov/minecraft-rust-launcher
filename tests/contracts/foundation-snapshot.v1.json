@@ -9,7 +9,7 @@
   },
   "developmentBuild": true,
   "features": {
-    "profiles": false,
+    "profiles": true,
     "installation": false,
     "authentication": false,
     "gameLaunch": false

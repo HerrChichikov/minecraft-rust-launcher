@@ -1,4 +1,4 @@
-name: Foundation checks
+name: Launcher checks
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: foundation-${{ github.workflow }}-${{ github.ref }}
+  group: launcher-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -86,7 +86,7 @@ jobs:
       - name: Upload internal build artifacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: launcher-foundation-${{ matrix.target }}
+          name: launcher-storage-${{ matrix.target }}
           if-no-files-found: error
           retention-days: 14
           path: |

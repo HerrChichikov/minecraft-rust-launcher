@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "rootId": "12345678-1234-4567-8123-123456789abc",
+  "dataRoot": "/test/Launcher/data",
+  "configurationRevision": 1,
+  "revision": 1,
+  "activeProfileId": "23456789-1234-4567-8123-123456789abc",
+  "profiles": [
+    {
+      "schemaVersion": 1,
+      "revision": 1,
+      "id": "23456789-1234-4567-8123-123456789abc",
+      "name": "Основная конфигурация",
+      "minecraftVersion": "1.21.1",
+      "settings": {
+        "minRamMib": 1024,
+        "maxRamMib": 4096,
+        "runtime": { "kind": "managed" },
+        "extraJvmArgs": []
+      }
+    }
+  ],
+  "policy": { "maxRamMib": 8192 }
+}

@@ -18,3 +18,12 @@ pub trait CredentialStore: Send + Sync {
     fn write(&self, reference: &str, secret: &SecretString) -> Result<()>;
     fn delete(&self, reference: &str) -> Result<()>;
 }
+
+pub(crate) mod filesystem;
+mod index;
+mod workspace;
+pub use index::{IndexLoad, IndexStatus, VerificationIndex, VerificationRecord};
+pub use workspace::{ProfileLease, WorkspaceService, WorkspaceSnapshot};
+
+/// Stable storage identity used to reject stale IPC requests after root changes.
+pub type RootId = uuid::Uuid;

@@ -11,6 +11,20 @@ pub enum LauncherError {
     InvalidInput { field: &'static str },
     #[error("the profile is already in use")]
     ProfileBusy,
+    #[error("the storage is already in use")]
+    StorageBusy,
+    #[error("the document is corrupt")]
+    CorruptDocument,
+    #[error("the document schema is unsupported")]
+    UnsupportedSchema,
+    #[error("the settings have changed; reload before saving")]
+    RevisionConflict,
+    #[error("the selected directory is not a launcher root")]
+    UnmanagedDirectory,
+    #[error("an unsafe filesystem path was rejected")]
+    UnsafePath,
+    #[error("the write was published but directory synchronization failed")]
+    Durability(#[source] std::io::Error),
     #[error("the operation was cancelled")]
     Cancelled,
     #[error("this platform is unsupported")]
@@ -21,4 +35,10 @@ pub enum LauncherError {
     CredentialStoreUnavailable,
     #[error("filesystem operation failed")]
     Storage(#[source] std::io::Error),
+}
+
+impl From<std::io::Error> for LauncherError {
+    fn from(error: std::io::Error) -> Self {
+        Self::Storage(error)
+    }
 }

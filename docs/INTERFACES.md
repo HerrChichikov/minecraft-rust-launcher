@@ -54,3 +54,15 @@ DTO содержат `schemaVersion`, IDs, stage, progress, sequence. Errors: `c
 ## Ошибки
 
 Группы `Metadata`, `UnsupportedVersion/Platform`, `UnsafePath`, `Network`, `HashMismatch`, `DiskFull`, `PermissionDenied`, `Cancelled`, `ProfileBusy`, `RuntimeUnavailable/Incompatible`, `AuthRejected/Challenge/Expired`, `CredentialStoreUnavailable`, `InvalidArguments/UnresolvedPlaceholder`, `SpawnFailed`, `GameExitedUnexpectedly`, `StorageSchema`. У ошибки есть typed context без токенов. Offline и неверный пароль не сливаются в один ответ.
+
+## Реализовано в Phase 2
+
+К `get_snapshot` добавлены `get_workspace`, `create_profile`, `select_profile`, `save_profile`, `switch_data_root`. Все доступны только bundled main window; нет frontend fs/http/shell permission. FS I/O выполняется в spawn_blocking; Domain errors превращаются в code/messageKey/retryable без raw paths/source messages.
+
+`WorkspaceSnapshot` schemaVersion=1: rootId, dataRoot, configurationRevision, revision (selection), activeProfileId, profiles, policy.maxRamMib. Общий Rust/TS fixture: tests/contracts/workspace.v1.json. ProfileId — UUID v4, backend-owned. Profile имеет свою revision.
+
+Все mutation payloads вложены в `request` и deny_unknown_fields. Create: rootId/name. Select: rootId/profileId/expectedRevision selection. Save: rootId/profileId/expectedRevision profile/name/settings. Switch: rootId/expectedRevision configuration/path (absolute). Ответ — полностью прочитанный WorkspaceSnapshot; UI обновляет состояние после backend success. dataRoot — единственный явный пользовательский path authority; произвольных managed file paths UI не передаёт.
+
+Коды ошибок: storage_busy, corrupt_document, unsupported_schema, revision_conflict, unsafe_path, invalid_settings, durability_failed, storage_failed. При durability_failed файл уже может быть опубликован; требуется refresh. Неизвестный код сводится к storage_failed. Profiles feature означает наличие реализации, а не успешное открытие любого повреждённого пользовательского root. Foundation bootstrap DTO phase="foundation" сохранён для совместимости протокола; этап UI — 02.
+
+ProfileRepository теперь sync contract для bounded локального I/O, вызываемого на blocking worker; будущие сетевые installer/auth/runtime contracts остаются async. Secret Session/LaunchSpec по-прежнему не являются IPC DTO.

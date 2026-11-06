@@ -1,4 +1,4 @@
-# CI/CD — Phase 1
+# CI/CD
 
 Создан [.github/workflows/ci.yml](../.github/workflows/ci.yml). Workflow запускается по push, pull_request и workflow_dispatch, с `contents: read`, отменой устаревших runs и без release publishing/signing secrets. Наличие YAML не равно успешному run: актуальные результаты перечислены в [Phase 1 review](PHASE_1_REVIEW.md).
 
@@ -35,4 +35,6 @@ Actions checkout 7.0.1, setup-node 7.1.0, upload-artifact 7.0.2 закрепле
 
 Сборка .deb должна устанавливать package dependencies через package manager; .exe/.msi проверяются независимо. Package build не заменяет installation smoke. Для полного MVP дополнительно нужен реальный Minecraft/GPU/runtime/keychain/auth smoke на каждом target из TEST_PLAN, который foundation CI не выполняет.
 
-Пользователь уточнил repository: `HerrChichikov/minecraft-rust-launcher`; connection с правами записи подтверждена. Не создаём публичный release и не меняем default branch в обход review: source changes предназначены для отдельной codex/phase-1-foundation ветки. Статус реального выполнения проверяется в GitHub Actions, не выводится из наличия YAML.
+Пользователь уточнил repository: `HerrChichikov/minecraft-rust-launcher`; connection с правами записи подтверждена. Не создаём публичный release и не меняем default branch в обход review: Phase 1 опубликована в codex/phase-1-foundation; Phase 2 — в codex/phase-2-storage. Статус реального выполнения проверяется в GitHub Actions, не выводится из наличия YAML.
+
+Phase 2 сохраняет ту же native matrix и расширяет workspace/release IPC tests: реальные storage operations, revision conflict и denial до filesystem initialization. Результат Phase 2 отслеживается отдельно в PHASE_2_REVIEW.md.
