@@ -85,6 +85,9 @@ pub fn allowed(rules: Option<&Value>, context: &RuleContext) -> Result<bool> {
                         OperatingSystem::Macos => "osx",
                     },
                     "arch" => match context.platform.architecture {
+                        Architecture::X86_64 if context.platform.os == OperatingSystem::Macos => {
+                            "x86_64"
+                        }
                         Architecture::X86_64 => "amd64",
                         Architecture::Aarch64 => "aarch64",
                     },
