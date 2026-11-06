@@ -1,0 +1,427 @@
+{
+  "date": "2026-11-07",
+  "timezone": "Asia/Yekaterinburg",
+  "repository": "HerrChichikov/minecraft-rust-launcher",
+  "branch": "codex/phase-2-storage",
+  "sourceCommit": "db802c78778601fe4f539cb3c71bdc599eaa736c",
+  "runId": 42290329410,
+  "runAttempt": 2,
+  "url": "https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42290329410",
+  "conclusion": "success",
+  "checks": [
+    {
+      "name": "Desktop / x86_64-unknown-linux-gnu",
+      "id": 128152104961,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Linux native prerequisites",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check Rust target architecture",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test -p launcher-core --features dev-auth --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production feature guard",
+          "conclusion": "success"
+        },
+        {
+          "name": "Release IPC restrictions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Package desktop application",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "Frontend quality",
+      "id": 128152107854,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm audit --audit-level=moderate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "Desktop / aarch64-apple-darwin",
+      "id": 128152110108,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check Rust target architecture",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test -p launcher-core --features dev-auth --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production feature guard",
+          "conclusion": "success"
+        },
+        {
+          "name": "Release IPC restrictions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Package desktop application",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "Desktop / x86_64-apple-darwin",
+      "id": 128152161399,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check Rust target architecture",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test -p launcher-core --features dev-auth --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production feature guard",
+          "conclusion": "success"
+        },
+        {
+          "name": "Release IPC restrictions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Package desktop application",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "Desktop / x86_64-pc-windows-msvc",
+      "id": 128152164033,
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check Rust target architecture",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test -p launcher-core --features dev-auth --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production feature guard",
+          "conclusion": "success"
+        },
+        {
+          "name": "Release IPC restrictions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Package desktop application",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "launcher-storage-x86_64-unknown-linux-gnu",
+      "id": 13540918921,
+      "bytes": 2763103,
+      "archiveDigest": "sha256:cef26212762aa83e45af3fdb4064d690fed10dd68fc68bf834394a1040a2ab4a",
+      "expiresAt": "2026-11-20T21:15:31Z"
+    },
+    {
+      "name": "launcher-storage-aarch64-apple-darwin",
+      "id": 13539776929,
+      "bytes": 2629877,
+      "archiveDigest": "sha256:30f1652a20141a14aaead84754ee6e7213ad97342c4781ec73671ed5599bb941",
+      "expiresAt": "2026-11-20T20:45:18Z"
+    },
+    {
+      "name": "launcher-storage-x86_64-pc-windows-msvc",
+      "id": 13539733812,
+      "bytes": 4835703,
+      "archiveDigest": "sha256:d7f99f863cb9397a9b614e97de1479057bdeb3850372d296a9f2b150867f112d",
+      "expiresAt": "2026-11-20T20:56:38Z"
+    },
+    {
+      "name": "launcher-storage-x86_64-apple-darwin",
+      "id": 13539609793,
+      "bytes": 2834416,
+      "archiveDigest": "sha256:eb3b1b6c7d6ec4526e852e2907f148f1524650a98aee261d0254b5bd032bc244",
+      "expiresAt": "2026-11-20T21:01:26Z"
+    }
+  ],
+  "notes": [
+    "Attempt 1 Linux system dependencies timed out on slow Ubuntu Azure mirror; retried Linux only on the same source SHA.",
+    "Native workspace tests and release IPC checks ran on Windows x64, Linux x64, macOS Intel and macOS ARM64.",
+    "Build/test success does not assert graphical game or package installation smoke on all targets."
+  ]
+}

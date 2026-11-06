@@ -1,6 +1,6 @@
 # Безопасность
 
-Статус: требования полного MVP. В Phase 1 реально включены restricted Tauri app-command ACL/CSP, sanitized bootstrap DTO, backend-only secret types и release dev-auth guard; проверены positive/negative IPC tests и redaction Debug. Остальные filesystem/network/runtime controls ниже относятся к будущим implementations, это не аудит готового MVP.
+Статус: требования полного MVP. В Phase 1 реально включены restricted Tauri app-command ACL/CSP, sanitized bootstrap DTO, backend-only secret types и release dev-auth guard; проверены positive/negative IPC tests и redaction Debug. В Phase 2 добавлены capability-relative managed paths, no-follow opens, schemas/size limits, atomic JSON, OS leases и settings validation (ADR-008). Network/runtime execution controls ниже относятся к будущим implementations, это не аудит готового MVP.
 
 ## Границы доверия
 

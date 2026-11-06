@@ -1,6 +1,6 @@
 # План тестирования
 
-Статус: план для реализации. Выполненные проверки Phase 0 отдельно в [review](PHASE_0_REVIEW.md). Unit/integration tests не зависят от доступности Mojang/Ely.by; network e2e запускаются отдельным заданием.
+Статус: план полного MVP. Реальные проверки Phase 2 перечислены в [review](PHASE_2_REVIEW.md); остальные строки не означают готовую реализацию. Phase 0 — отдельно в [историческом review](PHASE_0_REVIEW.md). Unit/integration tests не зависят от доступности Mojang/Ely.by; network e2e запускаются отдельным заданием.
 
 ## Матрица
 
@@ -43,3 +43,12 @@
 Для production дополнительно реальный Ely.by login/refresh/restart/logout, agent SHA256 check, подключение к согласованному серверу с правильной server-side auth, профиль/скины и secure-profile/chat поведение. Token visibility/log inspection обязательны. Не используем production worlds для stop/crash tests.
 
 Каждый smoke report: commit, artifact hash, OS/build/arch, JVM version/arch, GPU/driver, сценарий, exit outcome, sanitized logs, pass/fail. Статус «поддерживается» только после pass; неподтверждённые targets остаются planned.
+
+## Реализованные проверки Storage & Profiles
+
+- `crates/launcher-core/tests/storage.rs`: 18 test cases, из них два — child-process helpers. Настоящие temp roots, restart, UUID/name/path separation, world sentinel, switch/back, nested/unmanaged/corrupt root отказ до commit, revisions, custom Java file validation, leases, corrupt/future JSON/index, symlink denial. Процессный lock holder завершается принудительно; оставшиеся lock-файлы не блокируют повторный open.
+- `storage/filesystem.rs`: portable traversal/UNC/ADS/device names; failed oversized write сохраняет старый JSON; publication fault до rename сохраняет старые данные, post-rename sync failure возвращает Durability при уже опубликованных новых данных. Обычная запись вызывает настоящий Unix directory sync, поэтому Linux O_PATH regression ловится без отдельного OS mock.
+- `src-tauri/src/tests.rs`: реальный handler/ACL и isolated paths, create/select/save persisted JSON, stale rejection; denial чужому window/remote origin до создания config/data; fs/shell/auth/play недоступны. Release выполняет тот же набор с custom-protocol.
+- Frontend: 21 test cases суммарно foundation/client/profiles. Workspace DTO shared fixture, malformed responses, loading, create/select, pending save, sanitized conflict + draft preservation/refresh, explicit no-migration root switch, browser without backend.
+
+Результаты native matrix и точный tested commit берутся из PHASE_2_REVIEW / validation/phase-2-ci.json. Symlink checks не пропускаются на Windows. Disk full/permission-specific errors и реальное внезапное отключение питания не симулируются: fault injection подтверждает границы publication, но не заменяет storage hardware testing.

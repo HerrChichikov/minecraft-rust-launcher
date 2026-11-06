@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-07",
+  "timezone": "Asia/Yekaterinburg",
+  "sourceCommit": "db802c78778601fe4f539cb3c71bdc599eaa736c",
+  "scope": "storage and profiles; no installer/authentication/game launch",
+  "toolchains": {
+    "rust": "1.99.1",
+    "node": "26.13.0",
+    "npm": "11.20.0"
+  },
+  "checks": {
+    "frontendTests": 21,
+    "coreTests": 24,
+    "desktopDebugTests": 7,
+    "desktopReleaseTests": 7,
+    "releaseDevAuthGuard": "pass for core and desktop",
+    "npmAuditVulnerabilities": 0,
+    "nativeArm64Ui": "pass: create and select profile, save 3072 MiB max RAM, quit/reopen preserves both; Play remains disabled",
+    "index": "storage/quarantine tested, no hashing implemented",
+    "offlineResearchChecks": 5279,
+    "unixDirectorySync": "pass on native Linux CI after readable descriptor fix; local regression tests also pass",
+    "adHocSignatureVerification": "pass: codesign --verify --deep --strict"
+  },
+  "artifact": {
+    "target": "aarch64-apple-darwin",
+    "path": "target/release/bundle/dmg/Launcher_0.1.0_aarch64.dmg",
+    "bytes": 2648871,
+    "sha256": "83a1e03a628a2b78a24164bb272e3354b9343d010f8567e7bf25b3c5f1624aae"
+  },
+  "nativeGuiOtherPlatforms": "not available locally; build/native tests tracked separately in CI",
+  "nativeGuiSourceCommit": "42c70f89319bd45f141ba166bed8521f095a4a36",
+  "finalPackageUi": "opened final macOS package with restored active profile and max RAM=3072 MiB"
+}

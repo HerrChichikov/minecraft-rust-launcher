@@ -1,6 +1,6 @@
-# Разработка — Phase 1
+# Разработка
 
-Реализован foundation: Rust workspace, Tauri 2 adapter, React/TypeScript/SCSS/Vite, базовые contracts, restricted IPC, тесты и CI. Это ещё не установщик и не готовый Minecraft launcher.
+Реализованы foundation и Phase 2 Storage & Profiles: Rust workspace, Tauri 2 adapter, React/TypeScript/SCSS/Vite, базовые contracts, restricted IPC, тесты и CI. Это ещё не установщик и не готовый Minecraft launcher.
 
 ## Окружение
 
@@ -65,3 +65,13 @@ App name `Launcher` и bundle ID `dev.launcher.desktop` — рабочие зн�
 ## Отчёты
 
 [Phase 1 review](PHASE_1_REVIEW.md) содержит фактические проверки и платформенные ограничения. `.github/workflows/ci.yml` даёт native runner matrix; без успешного run нельзя считать Windows/Linux подтверждёнными. Исследовательская проверка `python3 docs/research/verify_snapshot.py` остаётся offline и независимой от application tests.
+
+## Профили и настройки Phase 2
+
+Рабочая UI-панель появляется после подключения desktop bootstrap. Первый `get_workspace` открывает OS app config, создаёт marker/root layout/default profile и удерживает OS locks до завершения процесса. Для Tauri tests используются только injected TempDir paths — системные app data не затрагиваются.
+
+Штатный data root — `app_local_data_dir()/data`, config — `app_config_dir()/launcher.json`. Поле нового root требует абсолютного пути. Переключение не переносит файлы; можно вернуться в прежний root и восстановить его selection. Не редактируйте config параллельно работающему лаунчеру. Если JSON повреждён или schema новее, лаунчер сохранит исходный файл и покажет ошибку; автоматического reset нет.
+
+В UI RAM в МиБ; current physical RAM — верхняя граница сохранения. Managed Java пока только выбор будущего runtime, без установки. Custom Java проверяется как файл; major/architecture probe и запуск не относятся к Phase 2. Поддерживаемые JVM options указаны рядом с полем; агент, classpath, @argfile и собственные RAM flags не принимаются.
+
+Локальный smoke Phase 2 создал в app data дополнительную конфигурацию с max RAM=3072 МиБ. Это настоящий persisted profile, без игры/Java/пользовательских миров. Детальные результаты и SHA256 DMG — в validation/phase-2-local.json. GUI smoke на Windows/Linux/Intel не выполнялся на этой машине; native CI tests/builds учитываются отдельно.

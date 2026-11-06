@@ -64,3 +64,5 @@ JSON index вместо SQLite, raw runtime вместо LZMA, native JAR loader
 - OS locks использует std::fs::File::try_lock без дополнительного lock crate. Rust 1.99.1 уже поддерживает API. [std File](https://doc.rust-lang.org/std/fs/struct.File.html#method.try_lock).
 
 Новых frontend dependencies нет. Runtime downloads, hash libraries, OS credentials и archive parsers не добавлены. Обоснование и границы — ADR-008.
+
+Cargo metadata license declarations проверены: cap-std/cap-fs-ext/cap-primitives — `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT`; sysinfo — `MIT`; tempfile — `MIT OR Apache-2.0`. Sysinfo MSRV 1.95 совместим с pinned 1.99.1. Полный notices bundle остаётся gate Phase 8.
