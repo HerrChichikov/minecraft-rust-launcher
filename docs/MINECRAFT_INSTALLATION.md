@@ -1,6 +1,6 @@
 # Установка Minecraft
 
-Статус: алгоритм для Phase 3. Проверены JSON, но скачивание полного клиента и установка пока не выполнялись. Источники: [official manifest](https://piston-meta.mojang.com/mc/game/version_manifest_v2.json), [metadata 1.21.1](https://piston-meta.mojang.com/v1/packages/82ba6501da174a665c1787775f946487422f2432/1.21.1.json), локальные [снимки](research/provenance.json).
+Статус: реализован Phase 3 installer; локальная реальная установка/повтор/repair прошли, native CI четырёх targets пройден. Реальные результаты — [Phase 3 review](PHASE_3_REVIEW.md). Источники: [official manifest](https://piston-meta.mojang.com/mc/game/version_manifest_v2.json), [metadata 1.21.1](https://piston-meta.mojang.com/v1/packages/82ba6501da174a665c1787775f946487422f2432/1.21.1.json), локальные [снимки](research/provenance.json).
 
 ## Цепочка доверия и план
 
@@ -43,3 +43,5 @@ Download: один reusable HTTP client, не более 8 одновремен�
 Каждый файл пишется в уникальный temp в том же filesystem, проверяется size/hash, flush/sync, затем atomic publish. Другой поток видит только завершённый объект. При Windows sharing violation показываем понятную ошибку/ограниченный retry. Нет глобальной транзакции на всю игру: корректные immutable objects остаются пригодными после отмены. Старый установленный runtime не перезаписывается пофайлово.
 
 В MVP resume частичного файла не нужен: незавершённый partial скачивается заново, уже проверенные объекты сохраняются. Cancel останавливает enqueue/requests и hash workers между chunks; после точки успешного publish объект сохраняется. Progress отражает отдельно verified/reused/downloaded bytes, не считает reuse за сетевую скорость.
+
+Реализованная проверка всегда пересчитывает SHA1. Fingerprint shortcut пока не используется; режим Quick не даёт сокращённой проверки. Libraries хранятся по expected SHA1 revision, asset index filename/launch ID включает metadata hash, чтобы не перезаписывать используемую revision. Resume byte-range не реализован, staging не считается готовым объектом.

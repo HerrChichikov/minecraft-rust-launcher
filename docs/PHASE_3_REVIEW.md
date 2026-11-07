@@ -1,6 +1,6 @@
 # Phase 3 — Minecraft Installer
 
-Дата: 2026-11-07. Реализация проходит валидацию; native CI и проверка desktop UI ещё выполняются. Phase 4 не начата.
+Дата: 2026-11-07. **Функциональная реализация и native CI Phase 3 завершены, готовы к review.** Интерактивный desktop GUI smoke не выполнен: Mac заблокирован; пользователю отправлен запрос разблокировки. Phase 4 не начата.
 
 Работают metadata-derived загрузка Minecraft 1.21.1, библиотеки/rules, 3888 уникальных asset objects, logging config, managed Java 21, проверка SHA1/size и repair. Download workers ограничены восемью, temporary network/hash failures имеют максимум три попытки; все redirect destinations проверяются по HTTPS allowlist. Незавершённый файл не публикуется. Отмена кооперативная: между chunks; заблокированный HTTP request ограничен 30 секундами. Metadata control requests также имеют ограниченные retries; offline metadata fallback пока не реализован. Недоступность upstream даёт явную ошибку.
 
@@ -21,7 +21,12 @@ macOS ARM64:
 - Same-size corruption: повреждённый asset 9101 bytes восстановлен; скачано ровно **9101 bytes**; world sentinel сохранён.
 - Реальная загрузка native LWJGL, GLFW и FreeType из установленных JAR — pass, architecture aarch64. Это loader spike, не Minecraft/GPU/window smoke.
 - `npm run check`: format/ESLint/strict TS/**29 frontend tests**/Vite build — pass.
-- Rust: metadata fixtures всех четырёх targets, ordered rules, legal/cyclic/escaping runtime links, corrupt hash retry, offline file reuse, same-size repair, cancellation/oversized write preservation, URL policy, storage suites и IPC ACL. Последние counts фиксируются после окончательного run.
+- Rust: metadata fixtures всех четырёх targets, ordered rules, legal/cyclic/escaping runtime links, corrupt hash retry, offline file reuse, same-size repair, cancellation/oversized write preservation, URL policy, storage suites и IPC ACL. **32 core + 8 desktop tests — pass** (Windows дополнительно проверяет normal/verbatim executable paths); desktop suite также pass в release. Оба release dev-auth guard — pass. npm audit — 0 vulnerabilities.
+
+- Repair Java: новое поколение из проверенного кеша, **0 artifact download bytes**, прежний файл не изменён; world sentinel сохранён; Java/native probes pass.
+- GUI smoke пока недоступен: инструмент сообщает о заблокированном экране Mac; пользователю отправлен запрос разблокировки.
+
+Локальные receipts: [phase-3-local.json](validation/phase-3-local.json).
 
 ## Зависимости и ограничения
 
@@ -29,4 +34,27 @@ reqwest 0.13.5 blocking + Rustls, SHA1 0.10.7 (Mojang compatibility), regex 1.x;
 
 Native CI дополнен реальной установкой/повтором/loader spike на Windows/Linux/macOS Intel/ARM64. Каждый job использует isolated RUNNER_TEMP root; source checkout и packaged app остаются отдельно. CARGO_BUILD_TARGET теперь одинаков для check/test/package, чтобы не собирать release dependencies повторно в другом каталоге.
 
-Осталось до закрытия Phase 3: финальный native CI, desktop smoke и фиксация receipts/packages. Никаких заявлений о готовности полного Minecraft launch/production auth/GPU/install smoke всех пакетов.
+Остался интерактивный desktop GUI smoke после ручной разблокировки Mac. Code/CLI/native validation и packages подтверждены. Никаких заявлений о готовности полного Minecraft launch/production auth/GPU/install smoke всех пакетов.
+
+## Native validation findings
+
+Первая matrix подтвердила реальную установку/reuse/loader на macOS ARM64, а также debug/release/ACL tests на Windows и Intel. Windows Java probe работал, но class loading с verbatim executable path `\\?\` приводил к HotSpot jimage crash. Java-facing executable path теперь преобразуется в обычный Win32 drive/UNC path; filesystem capabilities сохраняют canonical handles. Добавлен Windows regression test. Java architecture aliases amd64/x86_64 и arm64/aarch64 нормализуются, для macOS rules используется x86_64. [OpenJDK platform test library](https://github.com/openjdk/jdk/blob/master/test/lib/jdk/test/lib/Platform.java) подтверждает различие macOS os.arch.
+
+Для Linux Azure mirror несколько раз не укладывался в 15 минут. CI переключён на официальный archive.ubuntu.com по HTTPS и устанавливает build prerequisites без recommends; набор обязательных dependencies сохранён. Smoke logs теперь публикуются при ошибке и сохраняются отдельными internal receipt artifacts, чтобы диагностика не терялась. Повторная matrix прошла для финального code/workflow commit.
+
+## Финальная native matrix
+
+Проверенный source/workflow commit: `b6a6c14f809afa984121a975a4773c911e935f43`. [Run 42314460830 — success](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42314460830). Все пять jobs successful. После этого коммита дополняются только документы и receipts.
+
+| Target | Debug/release/guard | Реальная установка + reuse + native loader | Пакеты |
+|---|---|---|---|
+| Windows x64 | pass | pass, amd64 | NSIS .exe / WiX .msi |
+| Linux x64 | pass | pass, amd64 | .deb |
+| macOS Intel | pass | pass, x86_64 | .dmg |
+| macOS ARM64 | pass | pass, aarch64 | .dmg |
+
+Сохранены четыре package artifacts и четыре text smoke receipts; game/runtime/JAR binaries в artifacts отсутствуют. IDs, archive digests и step outcomes — [phase-3-ci.json](validation/phase-3-ci.json). Реальная Windows class loading теперь проходит с нормализованным executable path; Intel probe принимает корректный Java os.arch alias.
+
+Локальный ARM64 DMG: `target/release/bundle/dmg/Launcher_0.1.0_aarch64.dmg`, **5 056 003 bytes**, SHA256 `0c2ac15e21c0ece2734bb5b02992f87b086c201f8183e0e7ddc4e6a426685560`; `.app` signature verification pass, internal ad-hoc build. Интерактивный UI не объявляется проверенным: экран Mac недоступен. После разблокировки остаётся проверить start/cancel/retry в окне приложения.
+
+Следующий функциональный этап — Phase 4 Authentication, по отдельному запросу пользователя. Production release, реальный login/server/game/GPU smoke и notarization не являются результатами Phase 3.

@@ -1,6 +1,6 @@
 # Управление Java
 
-Статус: проверены официальные manifests; runtime не установлен и не запускался.
+Статус: managed runtime установлен и probe выполнен на macOS ARM64; full native install/reuse/probe/loader matrix четырёх targets пройдена в Phase 3. [Результаты](PHASE_3_REVIEW.md).
 
 Версия 1.21.1 указывает `javaVersion = { component: "java-runtime-delta", majorVersion: 21 }`. Component нельзя угадывать из major или hardcode в installer. Bootstrap [runtime catalog Mojang](https://launchermeta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json) задаётся в одном upstream config; все file URLs/hash/size берём из выбранного manifest.
 
@@ -34,3 +34,7 @@ Per-file индекс ускоряет обычную проверку. Пере
 Managed runtime — default. Custom Java хранится как абсолютный путь, без PATH lookup; проверяются executable, major, arch и возможность запуска. Другая архитектура не вызывает скрытого fallback: пользователь получает RuntimeIncompatible, пока такая комбинация не прошла smoke. JVM env очищается от `JAVA_TOOL_OPTIONS`, `_JAVA_OPTIONS`, `JDK_JAVA_OPTIONS`, `CLASSPATH` и переменных внедрения библиотек по platform policy.
 
 Открытые риски: noexec mount, права, glibc/GPU зависимости, quarantine, Rosetta и security freshness runtime. Все требуют real-machine smoke; JSON сам по себе их не закрывает. [Provenance](research/provenance.json) содержит URLs и hashes четырёх manifests.
+
+Реализация Phase 3 берёт raw files, проверяет весь manifest при reuse и выполняет bounded Tokio probe. Runtime CAS objects копируются в новую generation (без hardlinks), legal file links создаются последними. Поддерживаются только ссылки, в итоге указывающие на manifest file; directory links отклоняются. Старые generations и interrupted staging автоматически не удаляются. После repair старая generation остаётся нетронутой.
+
+Java architecture aliases нормализуются: amd64/x86_64 → x64, arm64/aarch64 → ARM64. Для Windows Java-facing executable path использует обычный Win32/UNC вид; verbatim prefix остаётся внутренним filesystem representation. Phase 5 должен применять тот же execution_path adapter ко всем Java-facing paths, включая classpath/asset arguments.

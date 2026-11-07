@@ -40,3 +40,11 @@ Actions checkout 7.0.1, setup-node 7.1.0, upload-artifact 7.0.2 закрепле
 Phase 2 сохраняет ту же native matrix и расширяет workspace/release IPC tests: реальные storage operations, revision conflict и denial до filesystem initialization. Результат Phase 2 отслеживается отдельно в PHASE_2_REVIEW.md.
 
 Phase 2 matrix подтверждена [run 42290329410 (attempt 2)](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42290329410) на source commit `db802c78778601fe4f539cb3c71bdc599eaa736c`: пять successful jobs, четыре package artifacts. Linux-only rerun потребовался из-за медленного Ubuntu mirror при установке prerequisites; application/workflow commit не менялся. Детальные outcomes/digests — [phase-2-ci.json](validation/phase-2-ci.json). Финальная фиксация результатов documentation-only, с `[skip ci]`; все code/workflow changes проверены реальным run.
+
+## Phase 3 matrix
+
+Добавлен real upstream smoke в isolated RUNNER_TEMP: install Minecraft 1.21.1 + Java, повтор с assertion downloadedBytes=0, Java source loader spike LWJGL/GLFW/FreeType. Это не запуск Minecraft, не GPU/window/login smoke. Game/runtime files в artifacts не загружаются; сохраняются только text receipts и launcher packages. Backend unit HTTP fixtures остаются offline/loopback.
+
+CARGO_BUILD_TARGET совпадает для check/test/guard/package, чтобы release dependencies переиспользовались. Linux prerequisites используют официальный HTTPS archive.ubuntu.com вместо нестабильно медленного Azure mirror; signed apt verification не отключается. Upload receipt step работает с always(), сетевые ошибки видны в logs. Текущий итог — PHASE_3_REVIEW.md.
+
+Phase 3 финальный [run 42314460830](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42314460830) — success на `b6a6c14f809afa984121a975a4773c911e935f43`: пять jobs, четыре package artifacts, четыре smoke receipt artifacts. После code freeze изменяются только документация/receipts с `[skip ci]`. GUI smoke отдельно остаётся pending из-за заблокированного Mac.

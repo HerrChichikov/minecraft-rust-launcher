@@ -66,3 +66,7 @@ JSON index вместо SQLite, raw runtime вместо LZMA, native JAR loader
 Новых frontend dependencies нет. Runtime downloads, hash libraries, OS credentials и archive parsers не добавлены. Обоснование и границы — ADR-008.
 
 Cargo metadata license declarations проверены: cap-std/cap-fs-ext/cap-primitives — `Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT`; sysinfo — `MIT`; tempfile — `MIT OR Apache-2.0`. Sysinfo MSRV 1.95 совместим с pinned 1.99.1. Полный notices bundle остаётся gate Phase 8.
+
+## Phase 3 (2026-11-07)
+
+reqwest 0.13.5, default-features=false, blocking/rustls: общий TLS client и streaming response без frontend HTTP plugin. [Официальный API](https://docs.rs/reqwest/0.13.5/reqwest/blocking/struct.ClientBuilder.html). Rustls использует текущий default AWS-LC provider; build toolchain requirements проверяются native matrix. Tokio 1.54.1 direct features rt/process/time/io-util/macros — только bounded/cancellable Java subprocess I/O; долгий installer работает в blocking worker pool, до восьми transfer threads. SHA1 0.10.7 используется для совместимости с Mojang expected digests; regex 1.13.1 ограничен size/dfa limits и необходим для official rule predicates. Новых frontend dependencies, LZMA/ZIP extractors, Maven resolver и auth libraries нет.

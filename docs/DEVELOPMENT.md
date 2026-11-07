@@ -75,3 +75,11 @@ App name `Launcher` и bundle ID `dev.launcher.desktop` — рабочие зн�
 В UI RAM в МиБ; current physical RAM — верхняя граница сохранения. Managed Java пока только выбор будущего runtime, без установки. Custom Java проверяется как файл; major/architecture probe и запуск не относятся к Phase 2. Поддерживаемые JVM options указаны рядом с полем; агент, classpath, @argfile и собственные RAM flags не принимаются.
 
 Локальный smoke Phase 2 создал в app data дополнительную конфигурацию с max RAM=3072 МиБ. Это настоящий persisted profile, без игры/Java/пользовательских миров. Детальные результаты и SHA256 DMG — в validation/phase-2-local.json. GUI smoke на Windows/Linux/Intel не выполнялся на этой машине; native CI tests/builds учитываются отдельно.
+
+## Phase 3 — установка и smoke
+
+В desktop доступна отдельная панель установки: кнопка читает активный backend profile, запускает start_install и показывает events/snapshot. Cancel адресуется operation ID; остановка stalled request может занять до 30 секунд. При ошибке повтор использует проверенные файлы. Выход из процесса оставляет только unpublished staging/parts; следующая попытка не считает их установленными. Автоматический cleanup/GC и metadata offline fallback пока отсутствуют.
+
+Opt-in CLI для разработчика (скачивает около 1–2 ГБ и выполняет официальный Java probe, игру не запускает): `cargo run -p launcher-core --example install_smoke --locked -- /absolute/isolated-smoke-root`. Корень должен быть отдельным тестовым каталогом. Повторный лог можно проверить scripts/check-install-reuse.py; native spike — scripts/check-native-smoke.py с тем же root. Для Windows используйте native absolute path; XML/JSON/paths сохраняются backend, shell команд из UI нет.
+
+Linux build prerequisites в CI загружаются с official archive.ubuntu.com HTTPS без recommended extras. CARGO_BUILD_TARGET одинаков для всех Rust checks/builds. System Java не требуется: native smoke использует downloaded Mojang runtime. Полный UI smoke на текущем Mac ожидает ручной разблокировки экрана; unit/IPC/native installer проверки независимы от этого.

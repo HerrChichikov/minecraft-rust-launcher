@@ -52,3 +52,11 @@
 - Frontend: 21 test cases суммарно foundation/client/profiles. Workspace DTO shared fixture, malformed responses, loading, create/select, pending save, sanitized conflict + draft preservation/refresh, explicit no-migration root switch, browser without backend.
 
 Результаты native matrix и точный tested commit берутся из PHASE_2_REVIEW / validation/phase-2-ci.json. Symlink checks не пропускаются на Windows. Disk full/permission-specific errors и реальное внезапное отключение питания не симулируются: fault injection подтверждает границы publication, но не заменяет storage hardware testing.
+
+## Phase 3 — фактическое покрытие
+
+Core installer tests: четыре version/rule platform fixtures и asset hash dedup; ordered rules, unknown predicates/bad regex; четыре runtime manifests, legal/escaping/cyclic links; retry corrupted same-size body, hash recheck/reuse/repair, cancelled streaming response cleanup, oversized publication preserving old file, strict HTTPS upstream policy. JVM aliases normalization на всех targets; Windows дополнительно normal/verbatim executable path conversion. Существующие storage/concurrency/schema/secret Debug tests сохранены.
+
+Frontend: installation reconnect, loading, no premature Ready, sequence rollback, operation-ID cancellation, sanitized errors/retry и malformed DTO. Desktop: installer state/unknown cancel/ACL, отказ remote/other window до filesystem initialization. Native debug и release suites выполняются без исключения targets.
+
+Upstream CI smoke: install official Minecraft/Java, recheck with downloadedBytes=0, real LWJGL/GLFW/FreeType loading through installed runtime. Local macOS ARM64 дополнительно проверяет same-size asset repair (9101 bytes only), retained world sentinel и runtime generation repair without rewriting old generation. Это не полный Minecraft/window/GPU/server smoke — он остаётся последующим этапом.

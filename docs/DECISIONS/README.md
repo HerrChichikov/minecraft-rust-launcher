@@ -15,3 +15,5 @@ ADR 001–006 приняты вместе с подтверждением Phase 
 Изменение решения обновляет ADR с причиной и последствиями. Новое решение, отменяющее старое, связывается ссылкой; история не стирается.
 
 - [ADR-008: локальное хранилище и профили](008-storage-profiles.md) — schemas, capability paths, locks, atomic publication, root switching.
+
+- [ADR-009: metadata-based installer](009-minecraft-installer.md) — HTTP, integrity, runtime generations, cancellation, native compatibility.
