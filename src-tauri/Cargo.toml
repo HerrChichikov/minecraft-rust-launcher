@@ -17,6 +17,7 @@ dev-auth = ["launcher-core/dev-auth"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+tokio = { version = "1", features = ["time"] }
 serde_json.workspace = true
 launcher-core.workspace = true
 serde.workspace = true

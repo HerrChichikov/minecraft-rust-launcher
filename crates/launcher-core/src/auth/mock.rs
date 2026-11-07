@@ -41,6 +41,7 @@ impl MockAuthProvider {
             profile: session.profile.clone(),
             access_token: SecretString::new(session.access_token.expose_secret().into()),
             user_type: "mojang".into(),
+            requires_ely_by_agent: false,
         })
     }
 }
@@ -57,7 +58,7 @@ impl AuthProvider for MockAuthProvider {
             unavailable_reason: None,
         }
     }
-    async fn authenticate(&self, input: AuthInput) -> Result<AuthOutcome> {
+    fn authenticate(&self, input: AuthInput) -> Result<AuthOutcome> {
         match input {
             AuthInput::DevelopmentNickname { nickname } => {
                 self.login(&nickname).map(AuthOutcome::Authenticated)
@@ -65,18 +66,18 @@ impl AuthProvider for MockAuthProvider {
             _ => Err(Error::UnsupportedAuthFlow),
         }
     }
-    async fn validate(&self, session: &Session) -> Result<SessionValidity> {
+    fn validate(&self, session: &Session) -> Result<SessionValidity> {
         self.check(session)?;
         Ok(SessionValidity::Valid)
     }
-    async fn refresh(&self, session: &Session) -> Result<Session> {
+    fn refresh(&self, session: &Session) -> Result<Session> {
         self.check(session)?;
         self.login(&session.profile.name)
     }
-    async fn logout(&self, session: &Session) -> Result<()> {
+    fn logout(&self, session: &Session) -> Result<()> {
         self.check(session)
     }
-    async fn launch_identity(&self, session: &Session) -> Result<LaunchIdentity> {
+    fn launch_identity(&self, session: &Session) -> Result<LaunchIdentity> {
         self.identity(session)
     }
 }

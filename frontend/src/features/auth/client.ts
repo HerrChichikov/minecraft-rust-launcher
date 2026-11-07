@@ -1,5 +1,4 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
-
 export interface AuthSnapshot {
   schemaVersion: 1;
   revision: number;
@@ -12,11 +11,13 @@ export interface AuthSnapshot {
     unavailableReason: string | null;
   }[];
   account: {
-    providerId: 'development-mock';
+    providerId: 'ely-by' | 'development-mock';
     playerId: string;
     playerName: string;
-    development: true;
+    development: boolean;
   } | null;
+  challenge: { id: string; providerId: 'ely-by'; expiresInSeconds: number } | null;
+  notice: 'remote_logout_failed' | null;
 }
 const record = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -33,7 +34,8 @@ export function parseAuth(v: unknown): AuthSnapshot {
     !Number.isSafeInteger(v.revision) ||
     (v.revision as number) < 0 ||
     v.persistence !== 'memory_only' ||
-    !Array.isArray(v.providers)
+    !Array.isArray(v.providers) ||
+    (v.notice !== null && v.notice !== 'remote_logout_failed')
   )
     throw new AuthError('invalid_response');
   const ids = new Set<string>();
@@ -45,13 +47,24 @@ export function parseAuth(v: unknown): AuthSnapshot {
       typeof p.available !== 'boolean' ||
       typeof p.development !== 'boolean' ||
       !Array.isArray(p.flows) ||
-      !p.flows.every((f: unknown) => f === 'development_nickname') ||
+      !p.flows.every((f: unknown) => f === 'development_nickname' || f === 'password_totp') ||
       (p.unavailableReason !== null && typeof p.unavailableReason !== 'string')
     )
       throw new AuthError('invalid_response');
     if (
-      (p.id === 'ely-by' && (p.available || p.development || p.flows.length !== 0)) ||
-      (p.id === 'development-mock' && (!p.available || !p.development || p.flows.length !== 1))
+      p.id === 'ely-by' &&
+      (p.development ||
+        (p.available
+          ? p.flows.length !== 1 || p.flows[0] !== 'password_totp'
+          : p.flows.length !== 0))
+    )
+      throw new AuthError('invalid_response');
+    if (
+      p.id === 'development-mock' &&
+      (!p.available ||
+        !p.development ||
+        p.flows.length !== 1 ||
+        p.flows[0] !== 'development_nickname')
     )
       throw new AuthError('invalid_response');
     ids.add(p.id);
@@ -69,9 +82,9 @@ export function parseAuth(v: unknown): AuthSnapshot {
     const a = v.account;
     if (
       !record(a) ||
-      a.providerId !== 'development-mock' ||
+      (a.providerId !== 'ely-by' && a.providerId !== 'development-mock') ||
       !ids.has(a.providerId) ||
-      a.development !== true ||
+      a.development !== (a.providerId === 'development-mock') ||
       typeof a.playerId !== 'string' ||
       !uuid.test(a.playerId) ||
       typeof a.playerName !== 'string' ||
@@ -82,8 +95,24 @@ export function parseAuth(v: unknown): AuthSnapshot {
       providerId: a.providerId,
       playerId: a.playerId,
       playerName: a.playerName,
-      development: true,
+      development: a.providerId === 'development-mock',
     };
+  }
+  let challenge: AuthSnapshot['challenge'] = null;
+  if (v.challenge !== null) {
+    const c = v.challenge;
+    if (
+      !record(c) ||
+      typeof c.id !== 'string' ||
+      !uuid.test(c.id) ||
+      c.providerId !== 'ely-by' ||
+      typeof c.expiresInSeconds !== 'number' ||
+      !Number.isSafeInteger(c.expiresInSeconds) ||
+      c.expiresInSeconds < 0 ||
+      c.expiresInSeconds > 120
+    )
+      throw new AuthError('invalid_response');
+    challenge = { id: c.id, providerId: 'ely-by', expiresInSeconds: c.expiresInSeconds };
   }
   return {
     schemaVersion: 1,
@@ -91,6 +120,8 @@ export function parseAuth(v: unknown): AuthSnapshot {
     persistence: 'memory_only',
     providers,
     account,
+    challenge,
+    notice: v.notice,
   };
 }
 async function call(command: string, request?: object): Promise<AuthSnapshot> {
@@ -99,7 +130,18 @@ async function call(command: string, request?: object): Promise<AuthSnapshot> {
   try {
     value = await invoke<unknown>(command, request ? { request } : undefined);
   } catch (error: unknown) {
-    const codes = ['auth_unavailable', 'revision_conflict', 'invalid_settings', 'storage_busy'];
+    const codes = [
+      'auth_unavailable',
+      'revision_conflict',
+      'invalid_settings',
+      'auth_busy',
+      'auth_rejected',
+      'auth_network',
+      'auth_protocol',
+      'auth_challenge_expired',
+      'authentication_required',
+      'unsupported_auth_flow',
+    ];
     throw new AuthError(
       record(error) && typeof error.code === 'string' && codes.includes(error.code)
         ? error.code
@@ -110,5 +152,21 @@ async function call(command: string, request?: object): Promise<AuthSnapshot> {
 }
 export const getAuth = () => call('get_auth');
 export const login = (s: AuthSnapshot, nickname: string) =>
-  call('login', { expectedRevision: s.revision, providerId: 'development-mock', nickname });
+  call('login', {
+    expectedRevision: s.revision,
+    providerId: 'development-mock',
+    input: { flow: 'development_nickname', nickname },
+  });
+export const loginPassword = (s: AuthSnapshot, login: string, password: string) =>
+  call('login', {
+    expectedRevision: s.revision,
+    providerId: 'ely-by',
+    input: { flow: 'password', login, password },
+  });
+export const continueLogin = (s: AuthSnapshot, totp: string) =>
+  call('continue_login', { expectedRevision: s.revision, challengeId: s.challenge?.id, totp });
+export const cancelLogin = (s: AuthSnapshot) =>
+  call('cancel_login', { expectedRevision: s.revision });
+export const refreshAuth = (s: AuthSnapshot) =>
+  call('refresh_auth', { expectedRevision: s.revision });
 export const logout = (s: AuthSnapshot) => call('logout', { expectedRevision: s.revision });

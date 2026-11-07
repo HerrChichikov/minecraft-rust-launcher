@@ -29,33 +29,32 @@ fn production_registry_and_configuration_cannot_enable_mock() -> Result<()> {
     assert!(matches!(service.logout(99), Err(Error::RevisionConflict)));
     Ok(())
 }
-#[tokio::test]
-async fn prepared_real_provider_fails_explicitly_without_transmitting_credentials() {
-    let provider = ElyByAuthProvider;
-    assert!(!provider.capabilities().available);
+#[test]
+fn real_provider_rejects_invalid_input_before_transmitting_credentials() {
+    let provider = ElyByAuthProvider::default();
+    assert!(provider.capabilities().available);
     let input = AuthInput::Password {
-        login: "fixture-user".into(),
+        login: "".into(),
         password: SecretString::new("never-transmit-password".into()),
         totp: None,
     };
     assert!(!format!("{input:?}").contains("never-transmit-password"));
     assert!(matches!(
-        provider.authenticate(input).await,
-        Err(Error::AuthUnavailable)
+        provider.authenticate(input),
+        Err(Error::InvalidInput { .. })
     ));
 }
 #[cfg(all(debug_assertions, feature = "dev-auth"))]
 mod development {
     use super::*;
     use launcher_core::auth::{AuthOutcome, MockAuthProvider, SessionValidity};
-    #[tokio::test]
-    async fn java_uuid_vectors_case_and_provider_lifecycle() -> Result<()> {
+    #[test]
+    fn java_uuid_vectors_case_and_provider_lifecycle() -> Result<()> {
         let provider = MockAuthProvider;
-        let AuthOutcome::Authenticated(session) = provider
-            .authenticate(AuthInput::DevelopmentNickname {
+        let AuthOutcome::Authenticated(session) =
+            provider.authenticate(AuthInput::DevelopmentNickname {
                 nickname: "Notch".into(),
-            })
-            .await?
+            })?
         else {
             return Err(Error::AuthenticationRequired);
         };
@@ -65,15 +64,15 @@ mod development {
         );
         assert_eq!(provider.login("Notch")?.profile.id, session.profile.id);
         assert_ne!(provider.login("notch")?.profile.id, session.profile.id);
-        assert_eq!(provider.validate(&session).await?, SessionValidity::Valid);
-        let fresh = provider.refresh(&session).await?;
+        assert_eq!(provider.validate(&session)?, SessionValidity::Valid);
+        let fresh = provider.refresh(&session)?;
         assert_eq!(fresh.profile.id, session.profile.id);
         assert_ne!(
             fresh.access_token.expose_secret(),
             session.access_token.expose_secret()
         );
-        assert_eq!(provider.launch_identity(&fresh).await?.user_type, "mojang");
-        provider.logout(&fresh).await?;
+        assert_eq!(provider.launch_identity(&fresh)?.user_type, "mojang");
+        provider.logout(&fresh)?;
         for name in [
             "",
             "ab",

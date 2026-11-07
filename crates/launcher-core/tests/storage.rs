@@ -190,7 +190,12 @@ fn leases_prevent_writes_and_switches_and_survive_store_drop() -> Result {
     drop(service);
     assert!(matches!(open(temp.path()), Err(Error::StorageBusy)));
     drop(lease);
-    assert!(open(temp.path()).is_ok());
+    let reopened = open(temp.path());
+    assert!(
+        reopened.is_ok(),
+        "reopen after dropping lease: {:?}",
+        reopened.err()
+    );
     Ok(())
 }
 

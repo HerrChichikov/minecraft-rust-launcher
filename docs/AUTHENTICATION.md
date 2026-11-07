@@ -1,6 +1,6 @@
 # Авторизация
 
-Статус Phase 4: реализованы provider contract, development mock и backend-owned session в памяти; Ely.by подготовлен и возвращает AuthUnavailable до выбора real flow. Реальные authenticate/refresh/session join не выполнялись; пользовательские credentials не запрашивались. Public injector metadata Ely.by получены и сохранены в [снимке](research/ely-api-metadata.json).
+Статус Phase 4: пользователь выбрал password + TOTP; реализованы Ely.by authenticate/refresh/validate/invalidate, backend challenge и memory-only session, development mock и production guards. Реальные upstream authenticate/refresh/session join с пользовательским аккаунтом ещё не выполнялись. Public injector metadata Ely.by получены и сохранены в [снимке](research/ely-api-metadata.json).
 
 ## Два документированных семейства
 
@@ -25,7 +25,7 @@
 | OAuth через подтверждённый native/public flow | Системный браузер, пароль не проходит через launcher | До подтверждения PKCE/public client и redirect registration нельзя считать реализуемым по имеющимся docs |
 | OAuth через собственный broker | Secret хранится на сервере, browser login | Новая инфраструктура, эксплуатация и threat model; за пределами согласованного MVP |
 
-Рекомендация — начать Phase 1–3 независимо от этого решения, а до Phase 4 согласовать password flow либо подтвердить поддержку безопасного native OAuth у Ely.by. Broker сейчас не проектировать как обязательный фундамент. Не смешиваем Yggdrasil clientToken и OAuth refresh_token.
+Решение пользователя 2026-11-07: реализовать password + TOTP. Broker сейчас не проектировать как обязательный фундамент. Не смешиваем Yggdrasil clientToken и OAuth refresh_token.
 
 ## Provider и сессии
 
@@ -57,6 +57,8 @@ Production без реального provider блокирует Play с AuthUna
 
 ## Реализовано в Phase 4
 
-См. [review](PHASE_4_REVIEW.md). AuthService владеет memory-only session, get_auth/login/logout работают через main-only IPC и revisions. Production registry содержит только недоступный Ely.by; mock branch/type/input доступны только debug+dev-auth. AccountRecord и OS CredentialStore выше — целевая real-auth архитектура; их persistence/adapters пока не реализованы. Нет «Запомнить меня» или plaintext fallback.
+См. [review](PHASE_4_REVIEW.md) и [ADR-010](DECISIONS/010-password-totp-auth.md). AuthProvider имеет bounded synchronous методы; desktop запускает их на blocking worker. AuthService владеет memory-only session, revision и backend challenge. get_auth/login/continue_login/cancel_login/refresh_auth/logout имеют main-only ACL. Password POST без redirects/retries; timeout 15 секунд, body до 128 КиБ, ошибки sanitized. Challenge 120 секунд/5 попыток, deadline supervisor очищает secret даже при idle UI. ClientToken binding и profile UUID проверяются при rotation. launch_identity validate/refresh повторяется перед будущим spawn; mock fallback отсутствует.
 
-Pinned agent downloader/argv adapter, license/source/notice review и SHA256 smoke описаны в [AUTHLIB_INJECTOR.md](AUTHLIB_INJECTOR.md). Java agent ещё не выполнялся; real session/game/server smoke не заявлены.
+AccountRecord/OS CredentialStore выше описывают будущую persistence. Сейчас нет OS adapters/«Запомнить меня» или plaintext fallback; restart требует нового входа. Logout удаляет local secrets до попытки remote invalidate, remote failure — отдельный notice. Собственные backend buffers zeroizing; гарантии полного стирания копий внутри JS/HTTP runtime нет.
+
+Pinned agent downloader/argv adapter, license/source/notice review и SHA256 smoke — в [AUTHLIB_INJECTOR.md](AUTHLIB_INJECTOR.md). Java agent ещё не выполнялся; real session/game/server smoke не заявлены.

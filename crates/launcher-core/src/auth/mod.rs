@@ -10,7 +10,7 @@ mod mock;
 #[cfg(all(debug_assertions, feature = "dev-auth"))]
 pub use mock::MockAuthProvider;
 
-use std::{fmt, future::Future};
+use std::fmt;
 
 use uuid::Uuid;
 use zeroize::Zeroizing;
@@ -78,18 +78,21 @@ pub struct LaunchIdentity {
     pub profile: PlayerProfile,
     pub access_token: SecretString,
     pub user_type: String,
+    pub requires_ely_by_agent: bool,
 }
 
-/// Providers must distinguish rejected credentials from transport failures and never log inputs.
+/// Bounded blocking provider I/O; desktop adapters execute it on blocking workers.
 pub trait AuthProvider: Send + Sync {
     fn id(&self) -> &str;
     fn capabilities(&self) -> ProviderCapabilities;
-    fn authenticate(&self, input: AuthInput) -> impl Future<Output = Result<AuthOutcome>> + Send;
-    fn refresh(&self, session: &Session) -> impl Future<Output = Result<Session>> + Send;
-    fn validate(&self, session: &Session) -> impl Future<Output = Result<SessionValidity>> + Send;
-    fn logout(&self, session: &Session) -> impl Future<Output = Result<()>> + Send;
-    fn launch_identity(
-        &self,
-        session: &Session,
-    ) -> impl Future<Output = Result<LaunchIdentity>> + Send;
+    fn authenticate(&self, input: AuthInput) -> Result<AuthOutcome>;
+    fn refresh(&self, session: &Session) -> Result<Session>;
+    fn validate(&self, session: &Session) -> Result<SessionValidity>;
+    fn logout(&self, session: &Session) -> Result<()>;
+    fn launch_identity(&self, session: &Session) -> Result<LaunchIdentity>;
+}
+impl<'de> serde::Deserialize<'de> for SecretString {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> std::result::Result<Self, D::Error> {
+        <String as serde::Deserialize>::deserialize(d).map(Self::new)
+    }
 }

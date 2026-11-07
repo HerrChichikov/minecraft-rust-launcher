@@ -11,7 +11,7 @@
   "features": {
     "profiles": true,
     "installation": true,
-    "authentication": false,
+    "authentication": true,
     "gameLaunch": false
   }
 }

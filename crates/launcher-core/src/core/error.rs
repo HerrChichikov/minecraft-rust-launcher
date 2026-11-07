@@ -41,6 +41,16 @@ pub enum LauncherError {
     AuthenticationRequired,
     #[error("the selected authentication provider is unavailable")]
     AuthUnavailable,
+    #[error("authentication credentials were rejected")]
+    AuthRejected,
+    #[error("authentication service is unreachable")]
+    AuthNetwork,
+    #[error("invalid authentication service response")]
+    AuthProtocol,
+    #[error("the authentication challenge expired")]
+    AuthChallengeExpired,
+    #[error("authentication is already in progress")]
+    AuthBusy,
     #[error("the authentication flow is unsupported")]
     UnsupportedAuthFlow,
     #[error("secure credential storage is unavailable")]

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from '../src/app/App';
+import authContract from '../../tests/contracts/auth.v1.json';
 import { foundationSnapshot, workspaceFixture } from './fixtures';
 
 vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn().mockResolvedValue(() => {}) }));
@@ -33,21 +34,7 @@ describe('foundation desktop screen', () => {
     vi.mocked(invoke)
       .mockRejectedValueOnce('private backend details')
       .mockResolvedValueOnce(foundationSnapshot)
-      .mockResolvedValueOnce({
-        schemaVersion: 1,
-        revision: 0,
-        persistence: 'memory_only',
-        providers: [
-          {
-            id: 'ely-by',
-            available: false,
-            development: false,
-            flows: [],
-            unavailableReason: 'real_flow_not_enabled',
-          },
-        ],
-        account: null,
-      })
+      .mockResolvedValueOnce(authContract)
       .mockResolvedValueOnce(workspaceFixture)
       .mockResolvedValueOnce(null);
     render(<App />);

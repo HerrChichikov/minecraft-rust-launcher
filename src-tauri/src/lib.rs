@@ -30,7 +30,10 @@ fn configure_with_storage<R: Runtime>(
             commands::installation::cancel_install,
             commands::auth::get_auth,
             commands::auth::login,
-            commands::auth::logout
+            commands::auth::logout,
+            commands::auth::continue_login,
+            commands::auth::cancel_login,
+            commands::auth::refresh_auth
         ])
 }
 

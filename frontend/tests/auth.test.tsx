@@ -37,7 +37,7 @@ describe('authentication UI and protocol', () => {
   it('does not manufacture production login or offer mock without backend capability', async () => {
     vi.mocked(invoke).mockResolvedValue(production);
     render(<AuthPanel />);
-    expect(await screen.findByText('Ely.by: реальный вход пока недоступен.')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Пароль Ely.by')).toBeInTheDocument();
     expect(screen.queryByLabelText('Тестовый ник')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Выйти' })).not.toBeInTheDocument();
   });
@@ -52,9 +52,13 @@ describe('authentication UI and protocol', () => {
     await userEvent.type(input, 'Notch');
     await userEvent.click(screen.getByRole('button', { name: 'Войти в Development / Mock' }));
     expect(await screen.findByText('Notch')).toBeInTheDocument();
-    expect(screen.getByText(/Development \/ Mock —/)).toBeInTheDocument();
+    expect(screen.getByText(/Development \/ Mock доступен/)).toBeInTheDocument();
     expect(invoke).toHaveBeenCalledWith('login', {
-      request: { expectedRevision: 0, providerId: 'development-mock', nickname: 'Notch' },
+      request: {
+        expectedRevision: 0,
+        providerId: 'development-mock',
+        input: { flow: 'development_nickname', nickname: 'Notch' },
+      },
     });
     view.unmount();
     render(<AuthPanel />);
@@ -75,7 +79,7 @@ describe('authentication UI and protocol', () => {
     render(<AuthPanel />);
     await userEvent.type(await screen.findByLabelText('Тестовый ник'), 'Notch');
     await userEvent.click(screen.getByRole('button', { name: 'Войти в Development / Mock' }));
-    expect(screen.getByRole('button', { name: 'Выполняется вход…' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Войти в Development / Mock' })).toBeDisabled();
     expect(screen.queryByText(/Выполнен тестовый вход/)).not.toBeInTheDocument();
     reject?.({ code: 'revision_conflict', message: 'private-token-secret' });
     expect(await screen.findByRole('alert')).toHaveTextContent('Состояние сессии изменилось');
@@ -91,7 +95,10 @@ describe('authentication UI and protocol', () => {
     ).toThrow();
     expect(() => parseAuth({ ...production, revision: -1 })).toThrow();
     expect(() =>
-      parseAuth({ ...production, providers: [{ ...production.providers[0], available: true }] }),
+      parseAuth({
+        ...production,
+        providers: [{ ...production.providers[0], flows: ['development_nickname'] }],
+      }),
     ).toThrow();
     expect(
       JSON.stringify(
@@ -132,6 +139,85 @@ describe('authentication UI and protocol', () => {
     await screen.findByRole('alert');
     await userEvent.click(screen.getByRole('button', { name: 'Обновить состояние входа' }));
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
-    expect(await screen.findByText('Ely.by: реальный вход пока недоступен.')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Пароль Ely.by')).toBeInTheDocument();
+  });
+});
+
+describe('Ely.by password and TOTP', () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+  });
+  const challenge = {
+    ...production,
+    revision: 1,
+    challenge: {
+      id: '12345678-1234-4234-8123-123456789abc',
+      providerId: 'ely-by',
+      expiresInSeconds: 119,
+    },
+  };
+  const realAccount = {
+    ...production,
+    revision: 2,
+    account: {
+      providerId: 'ely-by',
+      playerId: '12345678-1234-4234-8123-123456789abc',
+      playerName: 'ElyPlayer',
+      development: false,
+    },
+  };
+  it('clears password after submit, continues by opaque challenge and separates failed remote logout', async () => {
+    vi.mocked(invoke)
+      .mockResolvedValueOnce(production)
+      .mockResolvedValueOnce(challenge)
+      .mockResolvedValueOnce(realAccount)
+      .mockResolvedValueOnce({ ...production, revision: 3, notice: 'remote_logout_failed' });
+    render(<AuthPanel />);
+    await userEvent.type(
+      await screen.findByLabelText('Логин или email Ely.by'),
+      'fixture@example.test',
+    );
+    await userEvent.type(screen.getByLabelText('Пароль Ely.by'), 'fixture-password');
+    await userEvent.click(screen.getByRole('button', { name: 'Войти через Ely.by' }));
+    await userEvent.type(await screen.findByLabelText('Код TOTP'), '123456');
+    expect(screen.queryByLabelText('Пароль Ely.by')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Подтвердить код' }));
+    expect(await screen.findByText('ElyPlayer')).toBeInTheDocument();
+    expect(invoke).toHaveBeenCalledWith('continue_login', {
+      request: { expectedRevision: 1, challengeId: challenge.challenge.id, totp: '123456' },
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Выйти' }));
+    expect(
+      await screen.findByText(
+        'Вы вышли из приложения. Ely.by не подтвердил отзыв удалённой сессии.',
+      ),
+    ).toBeInTheDocument();
+    expect(await screen.findByLabelText('Пароль Ely.by')).toHaveValue('');
+  });
+  it('clears the password on network failure and never echoes provider error text', async () => {
+    vi.mocked(invoke)
+      .mockResolvedValueOnce(production)
+      .mockRejectedValueOnce({ code: 'auth_network', message: 'fixture-password-secret' })
+      .mockResolvedValueOnce(production);
+    render(<AuthPanel />);
+    await userEvent.type(
+      await screen.findByLabelText('Логин или email Ely.by'),
+      'fixture@example.test',
+    );
+    await userEvent.type(screen.getByLabelText('Пароль Ely.by'), 'fixture-password-secret');
+    await userEvent.click(screen.getByRole('button', { name: 'Войти через Ely.by' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось связаться с Ely.by');
+    expect(screen.getByLabelText('Пароль Ely.by')).toHaveValue('');
+    expect(screen.queryByText('fixture-password-secret')).not.toBeInTheDocument();
+  });
+  it('cancels a challenge without passing password back through IPC', async () => {
+    vi.mocked(invoke)
+      .mockResolvedValueOnce(challenge)
+      .mockResolvedValueOnce({ ...production, revision: 2 });
+    render(<AuthPanel />);
+    await screen.findByLabelText('Код TOTP');
+    await userEvent.click(screen.getByRole('button', { name: 'Отменить вход' }));
+    expect(await screen.findByLabelText('Пароль Ely.by')).toHaveValue('');
+    expect(invoke).toHaveBeenCalledWith('cancel_login', { request: { expectedRevision: 1 } });
   });
 });

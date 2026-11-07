@@ -2,7 +2,7 @@
 
 Основа desktop-лаунчера Minecraft Java Edition на Tauri 2, Rust и React / TypeScript / SCSS / Vite.
 
-**Текущий этап — Phase 4: Authentication.** Работают development mock (только debug + `dev-auth`), backend-сессия в памяти, вход/выход и capability-based UI. Ely.by подготовлен, реальный вход явно недоступен до выбора flow. Установщик и профили сохранены; запуск игры — Phase 5, «Играть» отключена. Результаты — [Phase 4 review](docs/PHASE_4_REVIEW.md).
+**Текущий этап — Phase 4: Authentication.** Реализованы Ely.by password/TOTP, refresh/validate/logout, development mock (только debug + `dev-auth`), backend-сессия в памяти и capability-based UI. Реальный upstream login требует отдельного smoke с test account; credential persistence пока отсутствует. Установщик и профили сохранены; запуск игры — Phase 5, «Играть» отключена. Результаты — [Phase 4 review](docs/PHASE_4_REVIEW.md).
 
 ## Запуск разработки
 

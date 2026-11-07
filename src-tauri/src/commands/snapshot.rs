@@ -26,6 +26,31 @@ impl ApiError {
 impl From<LauncherError> for ApiError {
     fn from(error: LauncherError) -> Self {
         match error {
+            LauncherError::AuthRejected => Self {
+                code: "auth_rejected",
+                message_key: "errors.authRejected",
+                retryable: false,
+            },
+            LauncherError::AuthNetwork => Self {
+                code: "auth_network",
+                message_key: "errors.authNetwork",
+                retryable: true,
+            },
+            LauncherError::AuthProtocol => Self {
+                code: "auth_protocol",
+                message_key: "errors.authProtocol",
+                retryable: false,
+            },
+            LauncherError::AuthChallengeExpired => Self {
+                code: "auth_challenge_expired",
+                message_key: "errors.authChallengeExpired",
+                retryable: false,
+            },
+            LauncherError::AuthBusy => Self {
+                code: "auth_busy",
+                message_key: "errors.authBusy",
+                retryable: true,
+            },
             LauncherError::AuthUnavailable => Self {
                 code: "auth_unavailable",
                 message_key: "errors.authUnavailable",
@@ -138,8 +163,7 @@ mod tests {
         let mut expected: serde_json::Value = serde_json::from_str(include_str!(
             "../../../tests/contracts/foundation-snapshot.v1.json"
         ))?;
-        expected["features"]["authentication"] =
-            cfg!(all(debug_assertions, feature = "dev-auth")).into();
+        expected["features"]["authentication"] = true.into();
         assert_eq!(actual, expected);
         Ok(())
     }

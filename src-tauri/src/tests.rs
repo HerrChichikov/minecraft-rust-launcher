@@ -213,13 +213,20 @@ fn authentication_registry_acl_and_release_mock_gate() -> Result<(), Box<dyn std
     let main = tauri::WebviewWindowBuilder::new(&app.app, "main", Default::default()).build()?;
     let secondary =
         tauri::WebviewWindowBuilder::new(&app.app, "untrusted", Default::default()).build()?;
-    for command in ["get_auth", "login", "logout"] {
+    for command in [
+        "get_auth",
+        "login",
+        "logout",
+        "continue_login",
+        "cancel_login",
+        "refresh_auth",
+    ] {
         assert!(get_ipc_response(&secondary, request(command, bundled_origin())?).is_err());
         assert!(get_ipc_response(&main, request(command, "https://example.com")?).is_err());
     }
     let state = call(&main, "get_auth", serde_json::json!({}))?;
     assert!(state["account"].is_null());
-    let payload = serde_json::json!({"request":{"expectedRevision":0,"providerId":"development-mock","nickname":"Notch"}});
+    let payload = serde_json::json!({"request":{"expectedRevision":0,"providerId":"development-mock","input":{"flow":"development_nickname","nickname":"Notch"}}});
     #[cfg(all(debug_assertions, feature = "dev-auth"))]
     {
         let logged = call(&main, "login", payload.clone())?;
@@ -249,21 +256,36 @@ fn authentication_registry_acl_and_release_mock_gate() -> Result<(), Box<dyn std
                 .len(),
             1
         );
-        for id in ["development-mock", "mock", "offline", "ely-by"] {
+        for id in ["development-mock", "mock", "offline", "unknown"] {
             let mut req = request("login", bundled_origin())?;
             req.body = InvokeBody::Json(
-                serde_json::json!({"request":{"expectedRevision":0,"providerId":id,"nickname":"Notch"}}),
+                serde_json::json!({"request":{"expectedRevision":0,"providerId":id,"input":{"flow":"development_nickname","nickname":"Notch"}}}),
             );
-            assert_eq!(
-                get_ipc_response(&main, req)
-                    .err()
-                    .ok_or("forged provider accepted")?["code"],
-                "auth_unavailable"
-            );
+            assert!(get_ipc_response(&main, req).is_err());
         }
         let _ = payload;
     }
-    assert!(call(&main,"login",serde_json::json!({"request":{"expectedRevision":0,"providerId":"development-mock","nickname":"Notch","session":{"accessToken":"forged-token"}}})).is_err());
+    assert!(call(&main,"login",serde_json::json!({"request":{"expectedRevision":0,"providerId":"development-mock","input":{"flow":"development_nickname","nickname":"Notch"},"session":{"accessToken":"forged-token"}}})).is_err());
+    assert!(!app._temp.path().join("data").exists());
+    Ok(())
+}
+
+#[test]
+fn ely_inputs_and_unknown_challenges_fail_before_any_network_or_storage()
+-> Result<(), Box<dyn std::error::Error>> {
+    let app = app()?;
+    let main = tauri::WebviewWindowBuilder::new(&app.app, "main", Default::default()).build()?;
+    assert!(call(&main,"login",serde_json::json!({"request":{"expectedRevision":0,"providerId":"ely-by","input":{"flow":"password","login":"","password":"fixture-password"}}})).is_err());
+    assert!(call(&main,"continue_login",serde_json::json!({"request":{"expectedRevision":0,"challengeId":"12345678-1234-4234-8123-123456789abc","totp":"123456"}})).is_err());
+    assert!(
+        call(
+            &main,
+            "refresh_auth",
+            serde_json::json!({"request":{"expectedRevision":0}})
+        )
+        .is_err()
+    );
+    assert!(call(&main, "get_auth", serde_json::json!({}))?["account"].is_null());
     assert!(!app._temp.path().join("data").exists());
     Ok(())
 }

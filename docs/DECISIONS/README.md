@@ -17,3 +17,5 @@ ADR 001–006 приняты вместе с подтверждением Phase 
 - [ADR-008: локальное хранилище и профили](008-storage-profiles.md) — schemas, capability paths, locks, atomic publication, root switching.
 
 - [ADR-009: metadata-based installer](009-minecraft-installer.md) — HTTP, integrity, runtime generations, cancellation, native compatibility.
+
+- [ADR-010: Ely.by password/TOTP и memory-only session](010-password-totp-auth.md).

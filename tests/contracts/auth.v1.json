@@ -4,12 +4,14 @@
   "providers": [
     {
       "id": "ely-by",
-      "available": false,
+      "available": true,
       "development": false,
-      "flows": [],
-      "unavailableReason": "real_flow_not_enabled"
+      "flows": ["password_totp"],
+      "unavailableReason": null
     }
   ],
   "account": null,
-  "persistence": "memory_only"
+  "persistence": "memory_only",
+  "challenge": null,
+  "notice": null
 }
