@@ -39,6 +39,10 @@ pub enum LauncherError {
     UnsupportedPlatform,
     #[error("authentication is required")]
     AuthenticationRequired,
+    #[error("the selected authentication provider is unavailable")]
+    AuthUnavailable,
+    #[error("the authentication flow is unsupported")]
+    UnsupportedAuthFlow,
     #[error("secure credential storage is unavailable")]
     CredentialStoreUnavailable,
     #[error("filesystem operation failed")]

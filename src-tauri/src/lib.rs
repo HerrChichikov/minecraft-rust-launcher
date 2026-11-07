@@ -17,6 +17,7 @@ fn configure_with_storage<R: Runtime>(
         .manage(ApplicationService)
         .manage(storage)
         .manage(commands::installation::InstallationState::default())
+        .manage(commands::auth::AuthState::default())
         .invoke_handler(tauri::generate_handler![
             commands::snapshot::get_snapshot,
             commands::workspace::get_workspace,
@@ -26,7 +27,10 @@ fn configure_with_storage<R: Runtime>(
             commands::workspace::switch_data_root,
             commands::installation::start_install,
             commands::installation::get_installation,
-            commands::installation::cancel_install
+            commands::installation::cancel_install,
+            commands::auth::get_auth,
+            commands::auth::login,
+            commands::auth::logout
         ])
 }
 

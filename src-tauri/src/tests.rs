@@ -81,7 +81,6 @@ fn auth_launch_and_filesystem_commands_are_unavailable() -> Result<(), Box<dyn s
     let app = app()?;
     let main = tauri::WebviewWindowBuilder::new(&app.app, "main", Default::default()).build()?;
     for command in [
-        "login",
         "mock_login",
         "play",
         "plugin:fs|read_text_file",
@@ -204,6 +203,67 @@ fn installer_state_and_cancel_are_scoped_and_unknown_operations_fail_closed()
         assert!(get_ipc_response(&secondary, request(command, bundled_origin())?).is_err());
         assert!(get_ipc_response(&main, request(command, "https://example.com")?).is_err());
     }
+    assert!(!app._temp.path().join("data").exists());
+    Ok(())
+}
+
+#[test]
+fn authentication_registry_acl_and_release_mock_gate() -> Result<(), Box<dyn std::error::Error>> {
+    let app = app()?;
+    let main = tauri::WebviewWindowBuilder::new(&app.app, "main", Default::default()).build()?;
+    let secondary =
+        tauri::WebviewWindowBuilder::new(&app.app, "untrusted", Default::default()).build()?;
+    for command in ["get_auth", "login", "logout"] {
+        assert!(get_ipc_response(&secondary, request(command, bundled_origin())?).is_err());
+        assert!(get_ipc_response(&main, request(command, "https://example.com")?).is_err());
+    }
+    let state = call(&main, "get_auth", serde_json::json!({}))?;
+    assert!(state["account"].is_null());
+    let payload = serde_json::json!({"request":{"expectedRevision":0,"providerId":"development-mock","nickname":"Notch"}});
+    #[cfg(all(debug_assertions, feature = "dev-auth"))]
+    {
+        let logged = call(&main, "login", payload.clone())?;
+        assert_eq!(
+            logged["account"]["playerId"],
+            "b50ad385-829d-3141-a216-7e7d7539ba7f"
+        );
+        assert_eq!(logged["account"]["development"], true);
+        assert!(!logged.to_string().contains("development-only-"));
+        assert_eq!(call(&main, "get_auth", serde_json::json!({}))?, logged);
+        assert!(call(&main, "login", payload).is_err());
+        assert!(
+            call(
+                &main,
+                "logout",
+                serde_json::json!({"request":{"expectedRevision":1}})
+            )?["account"]
+                .is_null()
+        );
+    }
+    #[cfg(not(all(debug_assertions, feature = "dev-auth")))]
+    {
+        assert_eq!(
+            state["providers"]
+                .as_array()
+                .ok_or("providers missing")?
+                .len(),
+            1
+        );
+        for id in ["development-mock", "mock", "offline", "ely-by"] {
+            let mut req = request("login", bundled_origin())?;
+            req.body = InvokeBody::Json(
+                serde_json::json!({"request":{"expectedRevision":0,"providerId":id,"nickname":"Notch"}}),
+            );
+            assert_eq!(
+                get_ipc_response(&main, req)
+                    .err()
+                    .ok_or("forged provider accepted")?["code"],
+                "auth_unavailable"
+            );
+        }
+        let _ = payload;
+    }
+    assert!(call(&main,"login",serde_json::json!({"request":{"expectedRevision":0,"providerId":"development-mock","nickname":"Notch","session":{"accessToken":"forged-token"}}})).is_err());
     assert!(!app._temp.path().join("data").exists());
     Ok(())
 }

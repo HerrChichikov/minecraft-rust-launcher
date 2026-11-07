@@ -1,6 +1,6 @@
 # Авторизация
 
-Статус: исследование и проект. Реальные authenticate/refresh/session join не выполнялись; пользовательские credentials не запрашивались. Public injector metadata Ely.by получены и сохранены в [снимке](research/ely-api-metadata.json).
+Статус Phase 4: реализованы provider contract, development mock и backend-owned session в памяти; Ely.by подготовлен и возвращает AuthUnavailable до выбора real flow. Реальные authenticate/refresh/session join не выполнялись; пользовательские credentials не запрашивались. Public injector metadata Ely.by получены и сохранены в [снимке](research/ely-api-metadata.json).
 
 ## Два документированных семейства
 
@@ -54,3 +54,9 @@ Launcher не выполняет за Minecraft `join/hasJoined`: это про�
 Ник: 3–16 ASCII letters/digits/underscore, ошибка для остальных. Стабильный UUID — Java-compatible nameUUIDFromBytes от UTF-8 `OfflinePlayer:<exact-name>` с MD5 и UUIDv3 bits, без добавления UUID namespace. Регистр сохраняется; это development identity, не remote UUID и не доказательство входа. Token — явно тестовое backend value, не логируется. UI постоянно показывает «Development / Mock». Сессия не восстанавливается из production config.
 
 Production без реального provider блокирует Play с AuthUnavailable. Нужны negative release tests, включая подделанный providerId в IPC и сохранённой config. [ADR-004](DECISIONS/004-auth-and-production.md) фиксирует release gate.
+
+## Реализовано в Phase 4
+
+См. [review](PHASE_4_REVIEW.md). AuthService владеет memory-only session, get_auth/login/logout работают через main-only IPC и revisions. Production registry содержит только недоступный Ely.by; mock branch/type/input доступны только debug+dev-auth. AccountRecord и OS CredentialStore выше — целевая real-auth архитектура; их persistence/adapters пока не реализованы. Нет «Запомнить меня» или plaintext fallback.
+
+Pinned agent downloader/argv adapter, license/source/notice review и SHA256 smoke описаны в [AUTHLIB_INJECTOR.md](AUTHLIB_INJECTOR.md). Java agent ещё не выполнялся; real session/game/server smoke не заявлены.

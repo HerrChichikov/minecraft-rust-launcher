@@ -26,6 +26,21 @@ impl ApiError {
 impl From<LauncherError> for ApiError {
     fn from(error: LauncherError) -> Self {
         match error {
+            LauncherError::AuthUnavailable => Self {
+                code: "auth_unavailable",
+                message_key: "errors.authUnavailable",
+                retryable: false,
+            },
+            LauncherError::AuthenticationRequired => Self {
+                code: "authentication_required",
+                message_key: "errors.authenticationRequired",
+                retryable: false,
+            },
+            LauncherError::UnsupportedAuthFlow => Self {
+                code: "unsupported_auth_flow",
+                message_key: "errors.unsupportedAuthFlow",
+                retryable: false,
+            },
             LauncherError::StorageBusy | LauncherError::ProfileBusy => {
                 Self::storage("storage_busy", true)
             }
@@ -120,9 +135,11 @@ mod tests {
         };
         snapshot.development_build = true;
         let actual = serde_json::to_value(SnapshotDto::from(snapshot))?;
-        let expected: serde_json::Value = serde_json::from_str(include_str!(
+        let mut expected: serde_json::Value = serde_json::from_str(include_str!(
             "../../../tests/contracts/foundation-snapshot.v1.json"
         ))?;
+        expected["features"]["authentication"] =
+            cfg!(all(debug_assertions, feature = "dev-auth")).into();
         assert_eq!(actual, expected);
         Ok(())
     }

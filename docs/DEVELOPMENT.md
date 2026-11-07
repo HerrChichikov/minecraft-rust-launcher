@@ -83,3 +83,9 @@ App name `Launcher` и bundle ID `dev.launcher.desktop` — рабочие зн�
 Opt-in CLI для разработчика (скачивает около 1–2 ГБ и выполняет официальный Java probe, игру не запускает): `cargo run -p launcher-core --example install_smoke --locked -- /absolute/isolated-smoke-root`. Корень должен быть отдельным тестовым каталогом. Повторный лог можно проверить scripts/check-install-reuse.py; native spike — scripts/check-native-smoke.py с тем же root. Для Windows используйте native absolute path; XML/JSON/paths сохраняются backend, shell команд из UI нет.
 
 Linux build prerequisites в CI загружаются с official archive.ubuntu.com HTTPS без recommended extras. CARGO_BUILD_TARGET одинаков для всех Rust checks/builds. System Java не требуется: native smoke использует downloaded Mojang runtime. Installer UI smoke packaged Release на macOS ARM64 пройден: start, cancel и retry до Ready. Исходные data root/profile и настройки восстановлены; receipt — validation/phase-3-gui.json. Это не game/GPU/login smoke.
+
+## Phase 4 — development auth
+
+`npm run dev:mock` (`tauri dev --features dev-auth`) включает backend mock. Обычный dev и release его не предлагают. Для packaged debug UI: `npm run tauri -- build --debug --features dev-auth --bundles app -- --locked`. Ник 3–16 ASCII letters/digits/underscore; UI постоянно помечает тестовую сессию. После перезапуска процесса нужен повторный вход. Токен не отображается и не сохраняется.
+
+`cargo test --workspace --features dev-auth --locked` проверяет также desktop IPC с mock. Release IPC suite выполняется без feature, compile-fail guards проверяют оба crates. Opt-in `cargo run -p launcher-core --example agent_smoke --locked -- /absolute/isolated-agent-smoke` скачивает pinned official agent, проверяет порчу/repair/reuse и не исполняет JAR. Используйте отдельный тестовый root.

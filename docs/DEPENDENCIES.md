@@ -70,3 +70,7 @@ Cargo metadata license declarations проверены: cap-std/cap-fs-ext/cap-p
 ## Phase 3 (2026-11-07)
 
 reqwest 0.13.5, default-features=false, blocking/rustls: общий TLS client и streaming response без frontend HTTP plugin. [Официальный API](https://docs.rs/reqwest/0.13.5/reqwest/blocking/struct.ClientBuilder.html). Rustls использует текущий default AWS-LC provider; build toolchain requirements проверяются native matrix. Tokio 1.54.1 direct features rt/process/time/io-util/macros — только bounded/cancellable Java subprocess I/O; долгий installer работает в blocking worker pool, до восьми transfer threads. SHA1 0.10.7 используется для совместимости с Mojang expected digests; regex 1.13.1 ограничен size/dfa limits и необходим для official rule predicates. Новых frontend dependencies, LZMA/ZIP extractors, Maven resolver и auth libraries нет.
+
+## Phase 4 (2026-11-07)
+
+RustCrypto sha2 **0.11.1** — pinned Authlib Injector SHA256; md-5 **0.11.0**, optional dependency, активен только с dev-auth — Java-compatible offline UUID (не credential hashing или доказательство входа). Оба MIT OR Apache-2.0; версии закреплены Cargo.lock. [SHA2 API](https://docs.rs/sha2/0.11.1/sha2/), [MD5 API](https://docs.rs/md-5/0.11.0/md5/). Новых frontend dependencies или OS keychain libraries нет; real-auth persistence пока не реализован. Agent — отдельно загружаемый unmodified binary, не Rust dependency; license/source/notice review в AUTHLIB_INJECTOR.md.

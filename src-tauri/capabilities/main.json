@@ -5,6 +5,9 @@
   "windows": ["main"],
   "permissions": [
     "allow-get-snapshot",
+    "allow-get-auth",
+    "allow-login",
+    "allow-logout",
     "allow-get-workspace",
     "allow-create-profile",
     "allow-select-profile",

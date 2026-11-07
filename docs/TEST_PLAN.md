@@ -62,3 +62,7 @@ Frontend: installation reconnect, loading, no premature Ready, sequence rollback
 Upstream CI smoke: install official Minecraft/Java, recheck with downloadedBytes=0, real LWJGL/GLFW/FreeType loading through installed runtime. Local macOS ARM64 дополнительно проверяет same-size asset repair (9101 bytes only), retained world sentinel и runtime generation repair without rewriting old generation. Это не полный Minecraft/window/GPU/server smoke — он остаётся последующим этапом.
 
 Packaged Release installer GUI на macOS ARM64: start/cancel/retry до Ready, прогресс и terminal outcomes проверены в реальном окне. Исходные data root/active profile восстановлены; profile config bytes и world sentinel сохранены. Receipt — validation/phase-3-gui.json. Это не graphical Minecraft smoke.
+
+## Phase 4 — фактическое покрытие
+
+Auth provider/service tests: Java UUID golden vector/case/invalid nickname, mock lifecycle, failed/stale login preservation, logout/restart loss, Debug/DTO redaction, explicit Ely.by AuthUnavailable. Shared auth Rust/TS fixture. Desktop actual IPC проверяет dev login/logout и release forged-provider/unknown-field/ACL denial. Frontend проверяет production capability gating, pending/errors, identity/reconnect/logout, stale initial response ordering и sanitized errors. Agent opt-in smoke проверяет pinned download SHA256, same-size corruption rejection, repair и reuse без execution. Real TOTP/refresh/revoke/store/game/server tests остаются pending до real provider/Launch Engine.

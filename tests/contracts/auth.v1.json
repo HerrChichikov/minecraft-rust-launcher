@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "revision": 0,
+  "providers": [
+    {
+      "id": "ely-by",
+      "available": false,
+      "development": false,
+      "flows": [],
+      "unavailableReason": "real_flow_not_enabled"
+    }
+  ],
+  "account": null,
+  "persistence": "memory_only"
+}

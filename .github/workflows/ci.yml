@@ -77,7 +77,7 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
-      - run: cargo test -p launcher-core --features dev-auth --locked
+      - run: cargo test --workspace --features dev-auth --locked
       - name: Production feature guard
         shell: bash
         run: python3 scripts/check-release-guard.py
@@ -92,6 +92,10 @@ jobs:
           cargo run -p launcher-core --example install_smoke --locked -- "$RUNNER_TEMP/launcher-install-smoke" > install-reuse.log 2>&1
           python3 scripts/check-install-reuse.py install-reuse.log
           python3 scripts/check-native-smoke.py install-reuse.log "$RUNNER_TEMP/launcher-install-smoke"
+      - name: Pinned Authlib Injector download and integrity smoke
+        timeout-minutes: 5
+        shell: bash
+        run: cargo run -p launcher-core --example agent_smoke --locked -- "$RUNNER_TEMP/launcher-agent-smoke" > agent-smoke.log 2>&1
       - name: Upload installer smoke receipts
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -102,6 +106,7 @@ jobs:
           path: |
             install-smoke.log
             install-reuse.log
+            agent-smoke.log
             hs_err_pid*.log
       - name: Package desktop application
         run: npm run tauri -- build --ci --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} -- --locked

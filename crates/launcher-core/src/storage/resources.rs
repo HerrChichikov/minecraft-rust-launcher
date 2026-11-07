@@ -48,6 +48,21 @@ impl WorkspaceService {
     }
 }
 impl ResourceStore {
+    pub(crate) fn bounded_bytes(&self, path: &str, limit: u64) -> Result<Option<Vec<u8>>> {
+        let (dir, name) = self.parent(path, true)?;
+        if !fs::regular(&dir, &name)? {
+            return Ok(None);
+        }
+        let mut options = OpenOptions::new();
+        options.read(true).follow(FollowSymlinks::No);
+        let file = dir.open_with(name, &options)?;
+        if file.metadata()?.len() > limit {
+            return Ok(None);
+        }
+        let mut bytes = vec![];
+        file.take(limit + 1).read_to_end(&mut bytes)?;
+        Ok((bytes.len() as u64 <= limit).then_some(bytes))
+    }
     fn parent(&self, path: &str, create: bool) -> Result<(Dir, String)> {
         fs::relative(path)?;
         let (parent, name) = path.rsplit_once('/').ok_or(Error::UnsafePath)?;

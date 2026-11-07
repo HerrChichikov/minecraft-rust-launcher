@@ -1,6 +1,7 @@
 import { InstallationPanel } from '../features/profiles/InstallationPanel';
 import { ProfilesPanel } from '../features/profiles/ProfilesPanel';
 import { FoundationStatus } from '../features/foundation/FoundationStatus';
+import { AuthPanel } from '../features/auth/AuthPanel';
 import { useFoundation } from '../features/foundation/useFoundation';
 
 export function App() {
@@ -33,7 +34,7 @@ export function App() {
 
         <div className="sidebar-footer">
           <span className="small-label">Этап разработки</span>
-          <strong>03 / Установка Minecraft</strong>
+          <strong>04 / Авторизация</strong>
           <p>Java Edition</p>
         </div>
       </aside>
@@ -44,16 +45,16 @@ export function App() {
             <p className="eyebrow">Minecraft Java Edition</p>
             <h1>Ваше пространство для игры</h1>
           </div>
-          <span className="phase-badge">Minecraft Installer</span>
+          <span className="phase-badge">Authentication</span>
         </header>
 
         <section className="welcome-card" aria-labelledby="welcome-title">
           <div className="welcome-copy">
-            <span className="release-label">Третий этап</span>
+            <span className="release-label">Четвёртый этап</span>
             <h2 id="welcome-title">Начало нового мира.</h2>
             <p>
-              Устанавливайте Minecraft, проверяйте файлы и сохраняйте настройки профилей.
-              Авторизация и запуск появятся на следующих этапах.
+              Устанавливайте Minecraft, проверяйте файлы и сохраняйте настройки профилей. Выбирайте
+              доступный способ входа. Запуск появится на следующем этапе.
             </p>
             <div className="play-area">
               <button
@@ -93,19 +94,20 @@ export function App() {
           <FoundationStatus state={state} retry={retry} />
           <section className="next-card" aria-labelledby="next-title">
             <p className="eyebrow">Дальше по плану</p>
-            <h2 id="next-title">Авторизация</h2>
+            <h2 id="next-title">Запуск Minecraft</h2>
             <p className="muted">
-              Подключение провайдеров, безопасное хранение сессий и вход в аккаунт.
+              Подготовка параметров Java, запуск игры и отслеживание её состояния.
             </p>
             <div className="next-step">
-              <span>04</span>
-              <strong>Authentication</strong>
+              <span>05</span>
+              <strong>Launch Engine</strong>
             </div>
           </section>
         </div>
 
         {state.status === 'ready' && (
           <>
+            <AuthPanel />
             <InstallationPanel />
             <ProfilesPanel />
           </>

@@ -1,4 +1,14 @@
-//! Authentication contracts only. No login provider, including mock, is implemented yet.
+//! Backend-owned sessions. Only sanitized account summaries cross IPC.
+
+pub mod agent;
+mod ely;
+mod service;
+pub use ely::{ElyByAuthProvider, ElyByConfiguration};
+pub use service::{AccountSummary, AuthService, AuthSnapshot, ProviderCapabilities};
+#[cfg(all(debug_assertions, feature = "dev-auth"))]
+mod mock;
+#[cfg(all(debug_assertions, feature = "dev-auth"))]
+pub use mock::MockAuthProvider;
 
 use std::{fmt, future::Future};
 
@@ -73,6 +83,7 @@ pub struct LaunchIdentity {
 /// Providers must distinguish rejected credentials from transport failures and never log inputs.
 pub trait AuthProvider: Send + Sync {
     fn id(&self) -> &str;
+    fn capabilities(&self) -> ProviderCapabilities;
     fn authenticate(&self, input: AuthInput) -> impl Future<Output = Result<AuthOutcome>> + Send;
     fn refresh(&self, session: &Session) -> impl Future<Output = Result<Session>> + Send;
     fn validate(&self, session: &Session) -> impl Future<Output = Result<SessionValidity>> + Send;

@@ -33,6 +33,21 @@ describe('foundation desktop screen', () => {
     vi.mocked(invoke)
       .mockRejectedValueOnce('private backend details')
       .mockResolvedValueOnce(foundationSnapshot)
+      .mockResolvedValueOnce({
+        schemaVersion: 1,
+        revision: 0,
+        persistence: 'memory_only',
+        providers: [
+          {
+            id: 'ely-by',
+            available: false,
+            development: false,
+            flows: [],
+            unavailableReason: 'real_flow_not_enabled',
+          },
+        ],
+        account: null,
+      })
       .mockResolvedValueOnce(workspaceFixture)
       .mockResolvedValueOnce(null);
     render(<App />);
@@ -41,7 +56,7 @@ describe('foundation desktop screen', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Повторить подключение' }));
     expect(await screen.findByText('Ядро подключено')).toBeInTheDocument();
-    expect(invoke).toHaveBeenCalledTimes(4);
+    expect(invoke).toHaveBeenCalledTimes(5);
   });
 
   it('shows a clear browser-only state without a fake core', async () => {

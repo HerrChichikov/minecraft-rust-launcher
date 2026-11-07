@@ -1,6 +1,6 @@
 # План реализации
 
-Phase 0 согласована пользователем 2026-11-06. Phase 1 реализована и прошла все четыре native CI build targets; готова к review. Результаты и ограничения — в [отчёте](PHASE_1_REVIEW.md). Phase 2 завершена, native checks/builds всех четырёх targets пройдены; результаты проверок — в [отчёте](PHASE_2_REVIEW.md). Phase 3 завершена: native install/reuse/loader/tests/packages всех четырёх targets и installer GUI smoke на macOS ARM64 пройдены: [отчёт](PHASE_3_REVIEW.md). Phase 4–8 не начаты. На переходе проверяем критерии и получаем согласование, если оно требуется исходным заданием; не считаем количество файлов готовностью этапа.
+Phase 0 согласована пользователем 2026-11-06. Phase 1 реализована и прошла все четыре native CI build targets; готова к review. Результаты и ограничения — в [отчёте](PHASE_1_REVIEW.md). Phase 2 завершена, native checks/builds всех четырёх targets пройдены; результаты проверок — в [отчёте](PHASE_2_REVIEW.md). Phase 3 завершена: native install/reuse/loader/tests/packages всех четырёх targets и installer GUI smoke на macOS ARM64 пройдены: [отчёт](PHASE_3_REVIEW.md). Phase 4 реализует development mock, provider boundary и verified agent preparation; локальные проверки и native CI выполняются: [отчёт](PHASE_4_REVIEW.md). Реальный Ely.by пока AuthUnavailable до выбора flow. Phase 5–8 не начаты. На переходе проверяем критерии и получаем согласование, если оно требуется исходным заданием; не считаем количество файлов готовностью этапа.
 
 | Этап | Результат | Критерий выхода / зависимости |
 |---|---|---|

@@ -2,7 +2,7 @@
 
 Основа desktop-лаунчера Minecraft Java Edition на Tauri 2, Rust и React / TypeScript / SCSS / Vite.
 
-**Текущий этап — Phase 3: Minecraft Installer.** Реализованы установка/проверка/repair Minecraft 1.21.1 и managed Java, прогресс и отмена. Профили и настройки сохраняются. Авторизация и запуск игры относятся к следующим этапам; «Играть» отключена. Текущие результаты — [Phase 3 review](docs/PHASE_3_REVIEW.md).
+**Текущий этап — Phase 4: Authentication.** Работают development mock (только debug + `dev-auth`), backend-сессия в памяти, вход/выход и capability-based UI. Ely.by подготовлен, реальный вход явно недоступен до выбора flow. Установщик и профили сохранены; запуск игры — Phase 5, «Играть» отключена. Результаты — [Phase 4 review](docs/PHASE_4_REVIEW.md).
 
 ## Запуск разработки
 
@@ -28,12 +28,12 @@ npm run check
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
-cargo test -p launcher-core --features dev-auth --locked
+cargo test --workspace --features dev-auth --locked
 python3 scripts/check-release-guard.py
 npm run tauri -- build --ci -- --locked
 ```
 
-`dev-auth` пока только зарезервированная development feature. Mock provider будет реализован в Phase 4; release с этой feature отвергается compiler/build guard уже сейчас.
+`npm run dev:mock` включает Development / Mock. Обычный `npm run dev` не включает его. Release с `dev-auth` отвергается compiler/build guard; production не принимает mock provider ID и не восстанавливает тестовую сессию из config.
 
 ## Структура
 
@@ -46,7 +46,7 @@ npm run tauri -- build --ci -- --locked
 
 ## Результаты и документация
 
-Начните с [отчёта Phase 3](docs/PHASE_3_REVIEW.md). [Phase 2](docs/PHASE_2_REVIEW.md) — завершённое хранилище и профили. [Phase 1](docs/PHASE_1_REVIEW.md) содержит исторические результаты foundation. [Phase 0](docs/PHASE_0_REVIEW.md) — историческое исследование, согласованное пользователем.
+Начните с [отчёта Phase 4](docs/PHASE_4_REVIEW.md). [Phase 3](docs/PHASE_3_REVIEW.md) — установщик Minecraft/Java. [Phase 2](docs/PHASE_2_REVIEW.md) — завершённое хранилище и профили. [Phase 1](docs/PHASE_1_REVIEW.md) содержит исторические результаты foundation. [Phase 0](docs/PHASE_0_REVIEW.md) — историческое исследование, согласованное пользователем.
 
 | Документ                                   | Содержание                                   |
 | ------------------------------------------ | -------------------------------------------- |

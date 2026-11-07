@@ -35,7 +35,7 @@ impl ApplicationService {
             features: FeatureAvailability {
                 profiles: true,
                 installation: true,
-                authentication: false,
+                authentication: cfg!(all(debug_assertions, feature = "dev-auth")),
                 game_launch: false,
             },
         })

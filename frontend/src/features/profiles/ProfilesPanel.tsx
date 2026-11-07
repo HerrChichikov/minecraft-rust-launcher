@@ -107,7 +107,10 @@ function ProfileEditor({
             />
           </label>
         )}
-        <p className="field-help">Установка и проверка версии Java появятся на следующих этапах.</p>
+        <p className="field-help">
+          Управляемая Java устанавливается вместе с Minecraft. Выбранная Java проверяется при
+          установке.
+        </p>
         <label>
           JVM-параметры, по одному на строку
           <textarea

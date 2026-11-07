@@ -40,3 +40,9 @@ Minecraft и JVM могут самостоятельно писать game logs,
 ## Release
 
 До production: dependency/license review, no mock gate, negative IPC tests, package install smoke, token leak tests и platform signing assessment. macOS/Windows signing secrets не доступны PR builds. Собственный updater позже требует отдельной подписи manifest/package и threat model, не одного checksum.
+
+## Реализовано в Phase 4
+
+Mock type/input/registry branch компилируются только debug+dev-auth. Production IPC отвергает поддельный provider ID, unknown fields/session import и untrusted origin/window; no runtime/config fallback. AuthService владеет process-only secrets, DTO содержат только summary. Login/logout revision защищает от stale writes; launch_identity повторяет build/provider gate. Real credential transmission, OS credential persistence и real auth refresh пока отсутствуют.
+
+Pinned agent скачивается по exact official HTTPS URL без redirects, body ограничен 8 МиБ, SHA256 до publication и argv. File logging отключается reviewed noLogFile property. Game stdout streaming redaction и реальный агент выполняются только при будущей реализации Launch Engine; наличие argv helper не объявляет эти sinks уже реализованными.

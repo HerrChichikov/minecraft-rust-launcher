@@ -14,7 +14,10 @@ fn foundation_does_not_advertise_unimplemented_features() -> Result<()> {
     assert_eq!(snapshot.target_minecraft_version, "1.21.1");
     assert!(snapshot.features.profiles);
     assert!(snapshot.features.installation);
-    assert!(!snapshot.features.authentication);
+    assert_eq!(
+        snapshot.features.authentication,
+        cfg!(all(debug_assertions, feature = "dev-auth"))
+    );
     assert!(!snapshot.features.game_launch);
     Ok(())
 }
