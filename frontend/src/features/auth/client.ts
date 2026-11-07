@@ -2,7 +2,8 @@ import { invoke, isTauri } from '@tauri-apps/api/core';
 export interface AuthSnapshot {
   schemaVersion: 1;
   revision: number;
-  persistence: 'memory_only';
+  persistence: 'memory_only' | 'system_credential_store';
+  rememberSupported: boolean;
   providers: {
     id: 'ely-by' | 'development-mock';
     available: boolean;
@@ -17,7 +18,12 @@ export interface AuthSnapshot {
     development: boolean;
   } | null;
   challenge: { id: string; providerId: 'ely-by'; expiresInSeconds: number } | null;
-  notice: 'remote_logout_failed' | null;
+  notice:
+    | 'remote_logout_failed'
+    | 'credential_store_unavailable'
+    | 'credential_delete_failed'
+    | 'logout_cleanup_failed'
+    | null;
 }
 const record = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -33,9 +39,16 @@ export function parseAuth(v: unknown): AuthSnapshot {
     v.schemaVersion !== 1 ||
     !Number.isSafeInteger(v.revision) ||
     (v.revision as number) < 0 ||
-    v.persistence !== 'memory_only' ||
+    (v.persistence !== 'memory_only' && v.persistence !== 'system_credential_store') ||
+    typeof v.rememberSupported !== 'boolean' ||
     !Array.isArray(v.providers) ||
-    (v.notice !== null && v.notice !== 'remote_logout_failed')
+    (v.notice !== null &&
+      ![
+        'remote_logout_failed',
+        'credential_store_unavailable',
+        'credential_delete_failed',
+        'logout_cleanup_failed',
+      ].includes(v.notice as string))
   )
     throw new AuthError('invalid_response');
   const ids = new Set<string>();
@@ -98,6 +111,11 @@ export function parseAuth(v: unknown): AuthSnapshot {
       development: a.providerId === 'development-mock',
     };
   }
+  if (
+    v.persistence === 'system_credential_store' &&
+    (!v.rememberSupported || account?.providerId !== 'ely-by')
+  )
+    throw new AuthError('invalid_response');
   let challenge: AuthSnapshot['challenge'] = null;
   if (v.challenge !== null) {
     const c = v.challenge;
@@ -117,11 +135,12 @@ export function parseAuth(v: unknown): AuthSnapshot {
   return {
     schemaVersion: 1,
     revision: v.revision as number,
-    persistence: 'memory_only',
+    persistence: v.persistence,
+    rememberSupported: v.rememberSupported,
     providers,
     account,
     challenge,
-    notice: v.notice,
+    notice: v.notice as AuthSnapshot['notice'],
   };
 }
 async function call(command: string, request?: object): Promise<AuthSnapshot> {
@@ -141,6 +160,8 @@ async function call(command: string, request?: object): Promise<AuthSnapshot> {
       'auth_challenge_expired',
       'authentication_required',
       'unsupported_auth_flow',
+      'credential_store_unavailable',
+      'saved_session_missing',
     ];
     throw new AuthError(
       record(error) && typeof error.code === 'string' && codes.includes(error.code)
@@ -157,10 +178,11 @@ export const login = (s: AuthSnapshot, nickname: string) =>
     providerId: 'development-mock',
     input: { flow: 'development_nickname', nickname },
   });
-export const loginPassword = (s: AuthSnapshot, login: string, password: string) =>
+export const loginPassword = (s: AuthSnapshot, login: string, password: string, remember = false) =>
   call('login', {
     expectedRevision: s.revision,
     providerId: 'ely-by',
+    remember,
     input: { flow: 'password', login, password },
   });
 export const continueLogin = (s: AuthSnapshot, totp: string) =>
@@ -170,3 +192,6 @@ export const cancelLogin = (s: AuthSnapshot) =>
 export const refreshAuth = (s: AuthSnapshot) =>
   call('refresh_auth', { expectedRevision: s.revision });
 export const logout = (s: AuthSnapshot) => call('logout', { expectedRevision: s.revision });
+
+export const restoreAuth = (s: AuthSnapshot) =>
+  call('restore_auth', { expectedRevision: s.revision });

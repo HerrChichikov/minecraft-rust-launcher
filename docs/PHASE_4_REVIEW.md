@@ -1,6 +1,6 @@
 # Phase 4 — Authentication
 
-Дата: 2026-11-07. Реализованы Ely.by password/TOTP (flow согласован пользователем), development mock, backend-owned сессия в памяти и verified agent preparation. Локальные проверки, GUI smoke и native CI перечислены ниже по фактическому состоянию. Phase 5 не начата.
+Дата: 2026-11-07. Реализованы Ely.by password/TOTP (flow согласован пользователем), development mock, backend-owned сессия, optional OS credential storage и verified agent preparation. Локальные проверки, GUI smoke и native CI перечислены ниже по фактическому состоянию. Phase 5 не начата.
 
 ## Поведение
 
@@ -8,9 +8,17 @@
 - TOTP: opaque challenge ID, пароль/clientToken остаются backend-only. Время challenge — 120 секунд, максимум 5 попыток; cancel/logout очищают secret. Desktop supervisor очищает истёкший challenge даже при idle UI; при занятом auth worker очистка завершается после bounded request. UI очищает password/TOTP field при отправке; повторный ввод кода не передаёт пароль обратно в webview.
 - ClientToken генерируется backend, response обязан вернуть тот же token; профиль/UUID берутся из provider response, а не из логина. Refresh не меняет profile UUID. Ошибка refresh не заменяет действующую сессию. Refresh и другие auth mutations single-flight: service владеет единственной сессией; dedicated auth mutex использует try_lock и возвращает AuthBusy, сетевой I/O выполняется на blocking worker. Workspace/UI thread не ждут этот I/O.
 - Logout сначала удаляет local session/challenge, затем пытается отозвать remote token. Неудачный remote revoke возвращается отдельным notice при уже завершённом local logout. signout всех аккаунтов не используется.
-- Session/LaunchIdentity не сериализуются; accessToken/clientToken — zeroizing SecretString с redacted Debug. IPC snapshots содержат только account summary/capabilities/revision/challenge ID. Пароль и TOTP на диск не записываются; токены живут только до завершения процесса. OS credential adapters/«Запомнить меня» пока не добавлены, plaintext fallback нет. Копии строк/буферов внутри JS/HTTP runtime не имеют гарантированного полного стирания.
+- Session/LaunchIdentity не сериализуются; accessToken/clientToken — zeroizing SecretString с redacted Debug. IPC snapshots содержат только account summary/capabilities/revision/challenge ID. Пароль и TOTP на диск не записываются; без сохранения токены живут только до завершения процесса. Флажок сохранения использует Keychain / Windows Credential Manager / Linux Secret Service; plaintext fallback нет. Без флажка сессия остаётся только в памяти. Копии строк/буферов внутри JS/HTTP runtime не имеют гарантированного полного стирания.
 - Mock type/input/registry branch компилируются только `debug_assertions` + opt-in `dev-auth`; ordinary debug и release не предлагают mock. `npm run dev:mock` включает явно помеченный Development / Mock. Ник: 3–16 ASCII letters/digits/underscore; UUID соответствует Java nameUUIDFromBytes UTF-8 `OfflinePlayer:<exact-name>` без namespace, с сохранением регистра.
 - Tauri get_auth/login/continue_login/cancel_login/refresh_auth/logout доступны только bundled main window; payload deny_unknown_fields. Session/token import и provider URLs из IPC/config отсутствуют. Revision защищает mutations и UI от позднего initial response. AuthService.launch_identity перед будущим spawn повторяет build/provider gate, validate и при необходимости single-flight refresh; Ely.by identity требует verified agent. Play пока отключён.
+
+## Системное хранилище токенов
+
+Keyring 4.2 v1 выбирает только native Keychain (macOS), Credential Manager (Windows), Secret Service (Linux). Адаптер использует отдельный последовательный worker: Windows backend предупреждает о ненадёжном ordering при доступе к одной записи из разных threads. Namespace и одна credential reference фиксированы backend; произвольные ключи из IPC не принимаются. Unit/IPC tests используют injected memory fixture и не читают пользовательский OS store.
+
+Сохраняется private schemaVersion=1 record только с Ely.by profile/accessToken/clientToken, без password/TOTP/agent URLs. Record никогда не используется как публичный DTO. Mock provider в saved record запрещён независимо от build. Restore требует явного действия, проверяет токен и обновляет его, получая profile binding из provider response; network failure сохраняет record для retry. Refresh перезаписывает один OS record; если OS write после server rotation не удался, свежая сессия остаётся в памяти с явным notice. Logout удаляет launcher entry и пытается выполнить invalidate; неудачи удаления/revoke сообщаются отдельно, local session уже удалена.
+
+Настоящий macOS Keychain write/read/delete проверен только на новом disposable record `dev.launcher.desktop.smoke`; реальных credentials тест не касался. Live Windows/Linux credential store проверяется на соответствующих доступных машинах; headless CI не выдаётся за такой smoke. `cargo run -p launcher-desktop --example credential_smoke --locked` — opt-in native API test с очисткой своей записи. Saved-session roundtrip, rotation, store failure, TOTP remember intent и запрет forged profile покрыты HTTP/injected-store tests.
 
 ## Authlib Injector
 
@@ -33,7 +41,7 @@ Pinned official build **56**, version **1.2.8**, source commit `5437f5b465ee3f5b
 
 ## Ограничения
 
-Реальный вход test account в Ely.by, TOTP/refresh/revoke на upstream, secure credential storage и совместимость agent/Game 1.21.1/server ещё не подтверждены. Mock не считается доказательством real auth. Сессии не переживают restart приложения. Desktop supervisor удаляет expired challenge, backend HTTP timeout ограничивает задержку очистки при активном request. AuthProvider — bounded synchronous contract, вызываемый на blocking worker, как InstallEngine; Tokio desktop используется для deadline supervisor.
+Реальный вход test account в Ely.by, TOTP/refresh/revoke на upstream, совместимость agent/Game 1.21.1/server ещё не подтверждены. Mock не считается доказательством real auth. Memory-only session не переживает restart; сохранённая сессия восстанавливается явной кнопкой, после validate+refresh на Ely.by. Desktop supervisor удаляет expired challenge, backend HTTP timeout ограничивает задержку очистки при активном request. AuthProvider — bounded synchronous contract, вызываемый на blocking worker, как InstallEngine; Tokio desktop используется для deadline supervisor.
 
 Первый CI run 42346631288 не начал ни одного шага из-за account billing/spending restriction. Пользователь отдельно подтвердил перевод репозитория в Public; API подтвердил public visibility. Повторная native matrix должна проверить финальный code commit; старый blocked run не считается валидацией.
 

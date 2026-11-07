@@ -1,6 +1,6 @@
 # Авторизация
 
-Статус Phase 4: пользователь выбрал password + TOTP; реализованы Ely.by authenticate/refresh/validate/invalidate, backend challenge и memory-only session, development mock и production guards. Реальные upstream authenticate/refresh/session join с пользовательским аккаунтом ещё не выполнялись. Public injector metadata Ely.by получены и сохранены в [снимке](research/ely-api-metadata.json).
+Статус Phase 4: пользователь выбрал password + TOTP; реализованы Ely.by authenticate/refresh/validate/invalidate, backend challenge и backend-owned session с optional OS persistence, development mock и production guards. Реальные upstream authenticate/refresh/session join с пользовательским аккаунтом ещё не выполнялись. Public injector metadata Ely.by получены и сохранены в [снимке](research/ely-api-metadata.json).
 
 ## Два документированных семейства
 
@@ -57,8 +57,10 @@ Production без реального provider блокирует Play с AuthUna
 
 ## Реализовано в Phase 4
 
-См. [review](PHASE_4_REVIEW.md) и [ADR-010](DECISIONS/010-password-totp-auth.md). AuthProvider имеет bounded synchronous методы; desktop запускает их на blocking worker. AuthService владеет memory-only session, revision и backend challenge. get_auth/login/continue_login/cancel_login/refresh_auth/logout имеют main-only ACL. Password POST без redirects/retries; timeout 15 секунд, body до 128 КиБ, ошибки sanitized. Challenge 120 секунд/5 попыток, deadline supervisor очищает secret даже при idle UI. ClientToken binding и profile UUID проверяются при rotation. launch_identity validate/refresh повторяется перед будущим spawn; mock fallback отсутствует.
+См. [review](PHASE_4_REVIEW.md) и [ADR-010](DECISIONS/010-password-totp-auth.md). AuthProvider имеет bounded synchronous методы; desktop запускает их на blocking worker. AuthService владеет backend-owned session с optional OS persistence, revision и backend challenge. get_auth/login/continue_login/cancel_login/refresh_auth/logout имеют main-only ACL. Password POST без redirects/retries; timeout 15 секунд, body до 128 КиБ, ошибки sanitized. Challenge 120 секунд/5 попыток, deadline supervisor очищает secret даже при idle UI. ClientToken binding и profile UUID проверяются при rotation. launch_identity validate/refresh повторяется перед будущим spawn; mock fallback отсутствует.
 
-AccountRecord/OS CredentialStore выше описывают будущую persistence. Сейчас нет OS adapters/«Запомнить меня» или plaintext fallback; restart требует нового входа. Logout удаляет local secrets до попытки remote invalidate, remote failure — отдельный notice. Собственные backend buffers zeroizing; гарантии полного стирания копий внутри JS/HTTP runtime нет.
+Реализован OS CredentialStore через keyring 4.2 v1: только Keychain / Credential Manager / Secret Service, без plaintext fallback. Явный флажок сохраняет token record, без password/TOTP. Restore запускается отдельной кнопкой после restart, делает validate+refresh и проверяет provider/profile binding. Без сохранения restart требует нового входа. При unavailable/locked store текущая authenticated session остаётся в памяти с notice. Logout удаляет local secrets до попытки remote invalidate, remote failure — отдельный notice. Собственные backend buffers zeroizing; гарантии полного стирания копий внутри JS/HTTP runtime нет.
 
 Pinned agent downloader/argv adapter, license/source/notice review и SHA256 smoke — в [AUTHLIB_INJECTOR.md](AUTHLIB_INJECTOR.md). Java agent ещё не выполнялся; real session/game/server smoke не заявлены.
+
+Системный adapter сериализует операции на отдельном worker thread. Logout удаляет app-owned credential entry; ошибки очистки/revoke видимы отдельно. Mock никогда не сохраняется и не восстанавливается. Detailed persistence validation — PHASE_4_REVIEW.md.

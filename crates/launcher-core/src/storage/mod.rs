@@ -13,7 +13,7 @@ pub struct AppPaths {
 }
 
 /// OS-backed credentials only; an unavailable store must not fall back to a plaintext file.
-pub trait CredentialStore: Send + Sync {
+pub trait CredentialStore: Send + Sync + std::fmt::Debug {
     fn read(&self, reference: &str) -> Result<Option<SecretString>>;
     fn write(&self, reference: &str, secret: &SecretString) -> Result<()>;
     fn delete(&self, reference: &str) -> Result<()>;

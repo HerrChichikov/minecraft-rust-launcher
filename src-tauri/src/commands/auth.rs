@@ -6,8 +6,19 @@ use launcher_core::{
 use serde::Deserialize;
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, Runtime, State};
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub(crate) struct AuthState(Mutex<AuthService>);
+impl Default for AuthState {
+    fn default() -> Self {
+        #[cfg(test)]
+        let service = AuthService::default();
+        #[cfg(not(test))]
+        let service = AuthService::with_credentials(std::sync::Arc::new(
+            crate::credentials::NativeCredentialStore::default(),
+        ));
+        Self(Mutex::new(service))
+    }
+}
 #[derive(Debug, Deserialize)]
 #[serde(tag = "flow", rename_all = "snake_case", deny_unknown_fields)]
 pub enum LoginInput {
@@ -24,6 +35,8 @@ pub struct LoginRequest {
     expected_revision: u32,
     provider_id: String,
     input: LoginInput,
+    #[serde(default)]
+    remember: bool,
 }
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -69,11 +82,17 @@ pub async fn login<R: Runtime>(
 ) -> Result<AuthSnapshot, ApiError> {
     let outcome = execute(app.clone(), move |s| {
         match (request.provider_id.as_str(), request.input) {
-            ("ely-by", LoginInput::Password { login, password }) => {
-                s.login_password(request.expected_revision, login, password)
-            }
+            ("ely-by", LoginInput::Password { login, password }) => s.login_password_with_remember(
+                request.expected_revision,
+                login,
+                password,
+                request.remember,
+            ),
             #[cfg(all(debug_assertions, feature = "dev-auth"))]
             (provider, LoginInput::DevelopmentNickname { nickname }) => {
+                if request.remember {
+                    return Err(LauncherError::UnsupportedAuthFlow);
+                }
                 s.login(request.expected_revision, provider, &nickname)
             }
             _ => Err(LauncherError::UnsupportedAuthFlow),
@@ -141,6 +160,13 @@ pub async fn logout<R: Runtime>(
     request: RevisionRequest,
 ) -> Result<AuthSnapshot, ApiError> {
     execute(app, move |s| s.logout(request.expected_revision)).await
+}
+#[tauri::command]
+pub async fn restore_auth<R: Runtime>(
+    app: AppHandle<R>,
+    request: RevisionRequest,
+) -> Result<AuthSnapshot, ApiError> {
+    execute(app, move |s| s.restore(request.expected_revision)).await
 }
 #[cfg(test)]
 mod tests {

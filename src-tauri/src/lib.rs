@@ -1,6 +1,7 @@
 //! Tauri adapters only. Domain services live in launcher-core.
 
 mod commands;
+mod credentials;
 
 use launcher_core::application::ApplicationService;
 use tauri::Runtime;
@@ -33,7 +34,8 @@ fn configure_with_storage<R: Runtime>(
             commands::auth::logout,
             commands::auth::continue_login,
             commands::auth::cancel_login,
-            commands::auth::refresh_auth
+            commands::auth::refresh_auth,
+            commands::auth::restore_auth
         ])
 }
 

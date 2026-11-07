@@ -11,6 +11,7 @@
     "allow-continue-login",
     "allow-cancel-login",
     "allow-refresh-auth",
+    "allow-restore-auth",
     "allow-get-workspace",
     "allow-create-profile",
     "allow-select-profile",

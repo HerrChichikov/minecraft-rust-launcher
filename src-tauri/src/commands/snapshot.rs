@@ -26,6 +26,16 @@ impl ApiError {
 impl From<LauncherError> for ApiError {
     fn from(error: LauncherError) -> Self {
         match error {
+            LauncherError::CredentialStoreUnavailable => Self {
+                code: "credential_store_unavailable",
+                message_key: "errors.credentialStoreUnavailable",
+                retryable: true,
+            },
+            LauncherError::SavedSessionMissing => Self {
+                code: "saved_session_missing",
+                message_key: "errors.savedSessionMissing",
+                retryable: false,
+            },
             LauncherError::AuthRejected => Self {
                 code: "auth_rejected",
                 message_key: "errors.authRejected",

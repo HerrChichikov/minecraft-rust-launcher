@@ -297,3 +297,217 @@ fn totp_attempt_limit_drops_challenge_and_deadline_cleanup_drops_idle_secret() -
     assert!(!format!("{service:?}").contains("fixture-password"));
     f.finish()
 }
+
+#[derive(Debug, Default)]
+struct FakeSecureStore {
+    secret: std::sync::Mutex<Option<SecretString>>,
+    fail_write: std::sync::atomic::AtomicBool,
+    fail_delete: std::sync::atomic::AtomicBool,
+}
+impl crate::storage::CredentialStore for FakeSecureStore {
+    fn read(&self, reference: &str) -> Result<Option<SecretString>> {
+        assert_eq!(reference, "ely-by/current");
+        Ok(self
+            .secret
+            .lock()
+            .map_err(|_| Error::CredentialStoreUnavailable)?
+            .as_ref()
+            .map(|s| SecretString::new(s.expose_secret().into())))
+    }
+    fn write(&self, reference: &str, secret: &SecretString) -> Result<()> {
+        assert_eq!(reference, "ely-by/current");
+        if self.fail_write.load(std::sync::atomic::Ordering::Relaxed) {
+            return Err(Error::CredentialStoreUnavailable);
+        }
+        *self
+            .secret
+            .lock()
+            .map_err(|_| Error::CredentialStoreUnavailable)? =
+            Some(SecretString::new(secret.expose_secret().into()));
+        Ok(())
+    }
+    fn delete(&self, reference: &str) -> Result<()> {
+        assert_eq!(reference, "ely-by/current");
+        if self.fail_delete.load(std::sync::atomic::Ordering::Relaxed) {
+            return Err(Error::CredentialStoreUnavailable);
+        }
+        *self
+            .secret
+            .lock()
+            .map_err(|_| Error::CredentialStoreUnavailable)? = None;
+        Ok(())
+    }
+}
+#[test]
+fn saved_session_restore_binds_profile_rotates_credentials_and_logout_deletes() -> Result<()> {
+    use crate::storage::CredentialStore;
+    let f = Fixture::new(vec![
+        ("authenticate", Reply::Session("saved-first")),
+        ("validate", Reply::Status(200, "")),
+        ("refresh", Reply::Session("restored-token")),
+        ("refresh", Reply::Session("saved-rotated")),
+        ("validate", Reply::Status(200, "")),
+        ("refresh", Reply::Session("restored-again")),
+        ("invalidate", Reply::Status(200, "")),
+    ])?;
+    let store = std::sync::Arc::new(FakeSecureStore::default());
+    let mut service = AuthService::with_test_provider(f.provider());
+    service.set_test_credentials(store.clone());
+    let saved =
+        service.login_password_with_remember(0, "fixture@example.test".into(), password(), true)?;
+    assert_eq!(saved.persistence, "system_credential_store");
+    assert!(
+        !store
+            .read("ely-by/current")?
+            .ok_or(Error::AuthProtocol)?
+            .expose_secret()
+            .contains("fixture-password")
+    );
+    drop(service);
+    let mut restored = AuthService::with_test_provider(f.provider());
+    restored.set_test_credentials(store.clone());
+    assert_eq!(
+        restored
+            .restore(0)?
+            .account
+            .ok_or(Error::AuthProtocol)?
+            .player_name,
+        "ElyPlayer"
+    );
+    restored.refresh(1)?;
+    assert!(
+        store
+            .read("ely-by/current")?
+            .ok_or(Error::AuthProtocol)?
+            .expose_secret()
+            .contains("saved-rotated")
+    );
+    drop(restored);
+    let mut next = AuthService::with_test_provider(f.provider());
+    next.set_test_credentials(store.clone());
+    next.restore(0)?;
+    assert!(next.logout(1)?.account.is_none());
+    assert!(store.read("ely-by/current")?.is_none());
+    assert!(matches!(next.restore(2), Err(Error::SavedSessionMissing)));
+    f.finish()
+}
+#[test]
+fn unavailable_store_has_explicit_memory_fallback_and_cleanup_failures_are_visible() -> Result<()> {
+    use crate::storage::CredentialStore;
+    let f = Fixture::new(vec![
+        ("authenticate", Reply::Session("memory-token")),
+        ("invalidate", Reply::Status(503, "")),
+    ])?;
+    let store = std::sync::Arc::new(FakeSecureStore::default());
+    store
+        .fail_write
+        .store(true, std::sync::atomic::Ordering::Relaxed);
+    let mut service = AuthService::with_test_provider(f.provider());
+    service.set_test_credentials(store.clone());
+    let result =
+        service.login_password_with_remember(0, "fixture@example.test".into(), password(), true)?;
+    assert_eq!(result.persistence, "memory_only");
+    assert!(result.account.is_some());
+    assert_eq!(result.notice, Some("credential_store_unavailable"));
+    assert!(store.read("ely-by/current")?.is_none());
+    store
+        .fail_delete
+        .store(true, std::sync::atomic::Ordering::Relaxed);
+    let result = service.logout(1)?;
+    assert!(result.account.is_none());
+    assert_eq!(result.notice, Some("logout_cleanup_failed"));
+    f.finish()
+}
+#[test]
+fn offline_restore_keeps_saved_credentials_for_retry() -> Result<()> {
+    use crate::storage::CredentialStore;
+    let f = Fixture::new(vec![
+        ("authenticate", Reply::Session("offline-retained-token")),
+        ("validate", Reply::Status(503, "")),
+    ])?;
+    let store = std::sync::Arc::new(FakeSecureStore::default());
+    let mut service = AuthService::with_test_provider(f.provider());
+    service.set_test_credentials(store.clone());
+    service.login_password_with_remember(0, "fixture@example.test".into(), password(), true)?;
+    drop(service);
+    let mut next = AuthService::with_test_provider(f.provider());
+    next.set_test_credentials(store.clone());
+    assert!(matches!(next.restore(0), Err(Error::AuthNetwork)));
+    assert!(next.snapshot().account.is_none());
+    assert_eq!(next.snapshot().revision, 0);
+    assert!(store.read("ely-by/current")?.is_some());
+    f.finish()
+}
+#[test]
+fn remember_intent_survives_totp_without_persisting_the_password() -> Result<()> {
+    use crate::storage::CredentialStore;
+    let f = Fixture::new(vec![
+        ("authenticate", Reply::Challenge),
+        ("authenticate", Reply::Session("totp-fixture-token")),
+    ])?;
+    let store = std::sync::Arc::new(FakeSecureStore::default());
+    let mut service = AuthService::with_test_provider(f.provider());
+    service.set_test_credentials(store.clone());
+    let challenged =
+        service.login_password_with_remember(0, "fixture@example.test".into(), password(), true)?;
+    assert!(store.read("ely-by/current")?.is_none());
+    let result = service.continue_login(
+        1,
+        challenged.challenge.ok_or(Error::AuthProtocol)?.id,
+        SecretString::new("123456".into()),
+    )?;
+    assert_eq!(result.persistence, "system_credential_store");
+    let record = store.read("ely-by/current")?.ok_or(Error::AuthProtocol)?;
+    assert!(!record.expose_secret().contains("fixture-password"));
+    assert!(!record.expose_secret().contains(":123456"));
+    f.finish()
+}
+
+#[test]
+fn restored_profile_cannot_be_forged_in_the_saved_record() -> Result<()> {
+    use crate::storage::CredentialStore;
+    let f = Fixture::new(vec![
+        ("authenticate", Reply::Session("profile-bound-token")),
+        ("validate", Reply::Status(200, "")),
+        ("refresh", Reply::Session("profile-bound-fresh")),
+    ])?;
+    let store = std::sync::Arc::new(FakeSecureStore::default());
+    let mut s = AuthService::with_test_provider(f.provider());
+    s.set_test_credentials(store.clone());
+    s.login_password_with_remember(0, "fixture@example.test".into(), password(), true)?;
+    drop(s);
+    let record = store.read("ely-by/current")?.ok_or(Error::AuthProtocol)?;
+    let forged = SecretString::new(record.expose_secret().replace(
+        "12345678-1234-4234-8123-123456789abc",
+        "22345678-1234-4234-8123-123456789abc",
+    ));
+    store.write("ely-by/current", &forged)?;
+    let mut next = AuthService::with_test_provider(f.provider());
+    next.set_test_credentials(store);
+    assert!(matches!(next.restore(0), Err(Error::AuthProtocol)));
+    assert!(next.snapshot().account.is_none());
+    f.finish()
+}
+#[test]
+fn credential_write_failure_after_rotation_keeps_the_new_session_in_memory() -> Result<()> {
+    let f = Fixture::new(vec![
+        ("authenticate", Reply::Session("stored-old-token")),
+        ("refresh", Reply::Session("memory-fresh-token")),
+        ("validate", Reply::Status(200, "")),
+    ])?;
+    let store = std::sync::Arc::new(FakeSecureStore::default());
+    let mut service = AuthService::with_test_provider(f.provider());
+    service.set_test_credentials(store.clone());
+    service.login_password_with_remember(0, "fixture@example.test".into(), password(), true)?;
+    store
+        .fail_write
+        .store(true, std::sync::atomic::Ordering::Relaxed);
+    let result = service.refresh(1)?;
+    assert_eq!(result.persistence, "memory_only");
+    assert_eq!(result.notice, Some("credential_store_unavailable"));
+    assert_eq!(
+        service.launch_identity()?.access_token.expose_secret(),
+        "memory-fresh-token"
+    );
+    f.finish()
+}

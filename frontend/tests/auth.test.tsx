@@ -221,3 +221,67 @@ describe('Ely.by password and TOTP', () => {
     expect(invoke).toHaveBeenCalledWith('cancel_login', { request: { expectedRevision: 1 } });
   });
 });
+
+describe('secure credential storage UI', () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+  });
+  const supported = { ...production, rememberSupported: true };
+  const restored = {
+    ...supported,
+    revision: 1,
+    persistence: 'system_credential_store',
+    account: {
+      providerId: 'ely-by',
+      playerId: '12345678-1234-4234-8123-123456789abc',
+      playerName: 'ElyPlayer',
+      development: false,
+    },
+  };
+  it('requires explicit remember intent and only reports persistence confirmed by backend', async () => {
+    vi.mocked(invoke).mockResolvedValueOnce(supported).mockResolvedValueOnce(restored);
+    render(<AuthPanel />);
+    const checkbox = await screen.findByRole('checkbox');
+    expect(checkbox).not.toBeChecked();
+    await userEvent.type(screen.getByLabelText('Логин или email Ely.by'), 'fixture@example.test');
+    await userEvent.type(screen.getByLabelText('Пароль Ely.by'), 'fixture-password');
+    await userEvent.click(checkbox);
+    await userEvent.click(screen.getByRole('button', { name: 'Войти через Ely.by' }));
+    expect(await screen.findByText('ElyPlayer')).toBeInTheDocument();
+    expect(screen.getByText(/Токены сохранены в системном/)).toBeInTheDocument();
+    expect(invoke).toHaveBeenCalledWith('login', {
+      request: {
+        expectedRevision: 0,
+        providerId: 'ely-by',
+        remember: true,
+        input: { flow: 'password', login: 'fixture@example.test', password: 'fixture-password' },
+      },
+    });
+  });
+  it('restores only on an explicit click, and shows memory-only fallback', async () => {
+    vi.mocked(invoke)
+      .mockResolvedValueOnce(supported)
+      .mockResolvedValueOnce({
+        ...restored,
+        persistence: 'memory_only',
+        notice: 'credential_store_unavailable',
+      });
+    render(<AuthPanel />);
+    await screen.findByRole('checkbox');
+    expect(invoke).toHaveBeenCalledTimes(1);
+    await userEvent.click(screen.getByRole('button', { name: 'Восстановить сохранённую сессию' }));
+    expect(await screen.findByText(/Вход выполнен, но сохранить токены/)).toBeInTheDocument();
+    expect(screen.queryByText(/Токены сохранены в системном/)).not.toBeInTheDocument();
+    expect(invoke).toHaveBeenCalledWith('restore_auth', { request: { expectedRevision: 0 } });
+  });
+  it('never accepts persistent mock or a persistence claim without store capability', () => {
+    expect(() =>
+      parseAuth({
+        ...authenticated,
+        persistence: 'system_credential_store',
+        rememberSupported: true,
+      }),
+    ).toThrow();
+    expect(() => parseAuth({ ...restored, rememberSupported: false })).toThrow();
+  });
+});

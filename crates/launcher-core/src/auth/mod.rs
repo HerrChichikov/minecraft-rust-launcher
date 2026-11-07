@@ -1,6 +1,7 @@
 //! Backend-owned sessions. Only sanitized account summaries cross IPC.
 
 pub mod agent;
+mod credentials;
 mod ely;
 mod service;
 pub use ely::{ElyByAuthProvider, ElyByConfiguration};

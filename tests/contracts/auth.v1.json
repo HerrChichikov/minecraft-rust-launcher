@@ -13,5 +13,6 @@
   "account": null,
   "persistence": "memory_only",
   "challenge": null,
-  "notice": null
+  "notice": null,
+  "rememberSupported": false
 }

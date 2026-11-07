@@ -11,3 +11,5 @@
 Последствия: можно подготовить production artifact без логина для внутренних проверок, но выпуск функционального MVP ждёт real auth/server smoke. UUID не доказывает auth. Authlib Injector pinned/reviewed с SHA256, license/source/notice review; установка agent не заменяет login.
 
 Проверка: compile-fail exact guard, release IPC/config attack probes, no secrets in DTO/logs, test account refresh/invalidate и согласованный server smoke.
+
+Обновление Phase 4: пользователь выбрал password/TOTP; реализация и OS persistence — [ADR-010](010-password-totp-auth.md). Release mock guard сохранён, real account/game/server smoke учитываются отдельно.

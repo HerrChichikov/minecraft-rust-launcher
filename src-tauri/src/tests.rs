@@ -220,6 +220,7 @@ fn authentication_registry_acl_and_release_mock_gate() -> Result<(), Box<dyn std
         "continue_login",
         "cancel_login",
         "refresh_auth",
+        "restore_auth",
     ] {
         assert!(get_ipc_response(&secondary, request(command, bundled_origin())?).is_err());
         assert!(get_ipc_response(&main, request(command, "https://example.com")?).is_err());

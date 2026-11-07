@@ -55,6 +55,8 @@ pub enum LauncherError {
     UnsupportedAuthFlow,
     #[error("secure credential storage is unavailable")]
     CredentialStoreUnavailable,
+    #[error("no saved authentication session exists")]
+    SavedSessionMissing,
     #[error("filesystem operation failed")]
     Storage(#[source] std::io::Error),
 }

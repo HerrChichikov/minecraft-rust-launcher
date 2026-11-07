@@ -571,3 +571,14 @@ h1 {
 .auth-help {
   margin: 24px 0 0;
 }
+
+.auth-card .remember-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.auth-card .remember-choice input {
+  width: auto;
+  margin-top: 4px;
+}

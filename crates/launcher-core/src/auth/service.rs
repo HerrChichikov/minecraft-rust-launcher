@@ -1,7 +1,11 @@
 use super::*;
 use crate::core::LauncherError as Error;
+use crate::storage::CredentialStore;
 use serde::Serialize;
-use std::time::{Duration, Instant};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProviderCapabilities {
@@ -35,6 +39,7 @@ pub struct AuthSnapshot {
     pub account: Option<AccountSummary>,
     pub challenge: Option<ChallengeSummary>,
     pub persistence: &'static str,
+    pub remember_supported: bool,
     pub notice: Option<&'static str>,
 }
 #[derive(Debug)]
@@ -45,6 +50,7 @@ struct PendingChallenge {
     client_token: SecretString,
     expires: Instant,
     attempts: u8,
+    remember: bool,
 }
 /// Single-flight owner; desktop runs bounded network operations on blocking workers.
 #[derive(Debug, Default)]
@@ -54,8 +60,60 @@ pub struct AuthService {
     revision: u32,
     ely: ElyByAuthProvider,
     notice: Option<&'static str>,
+    credentials: Option<Arc<dyn CredentialStore>>,
+    remembered: bool,
 }
 impl AuthService {
+    pub fn with_credentials(credentials: Arc<dyn CredentialStore>) -> Self {
+        Self {
+            credentials: Some(credentials),
+            ..Self::default()
+        }
+    }
+    fn commit_session(&mut self, session: Session, remember: bool) {
+        self.session = Some(session);
+        self.remembered = false;
+        if remember {
+            let saved = (|| {
+                let store = self
+                    .credentials
+                    .as_ref()
+                    .ok_or(Error::CredentialStoreUnavailable)?;
+                let session = self.session.as_ref().ok_or(Error::AuthenticationRequired)?;
+                store.write(
+                    super::credentials::REFERENCE,
+                    &super::credentials::encode(session)?,
+                )
+            })()
+            .is_ok();
+            if saved {
+                self.remembered = true;
+            } else {
+                self.notice = Some("credential_store_unavailable");
+            }
+        }
+    }
+    pub fn restore(&mut self, expected: u32) -> Result<AuthSnapshot> {
+        let next = self.next(expected)?;
+        if self.pending.is_some() {
+            return Err(Error::AuthBusy);
+        }
+        let store = self
+            .credentials
+            .as_ref()
+            .ok_or(Error::CredentialStoreUnavailable)?;
+        let saved = store
+            .read(super::credentials::REFERENCE)?
+            .ok_or(Error::SavedSessionMissing)?;
+        let session = super::credentials::decode(&saved)?;
+        self.ely.validate(&session)?;
+        // Refresh binds the restored UUID/name to a fresh provider response, even when valid.
+        let session = self.ely.refresh(&session)?;
+        self.notice = None;
+        self.commit_session(session, true);
+        self.revision = next;
+        Ok(self.snapshot())
+    }
     /// The application supervisor calls this at the challenge deadline, even with an idle UI.
     pub fn expire_challenge(&mut self) {
         if self
@@ -94,7 +152,12 @@ impl AuthService {
                         .saturating_duration_since(Instant::now())
                         .as_secs(),
                 }),
-            persistence: "memory_only",
+            persistence: if self.remembered {
+                "system_credential_store"
+            } else {
+                "memory_only"
+            },
+            remember_supported: self.credentials.is_some(),
             notice: self.notice,
         }
     }
@@ -110,6 +173,7 @@ impl AuthService {
         if provider == MockAuthProvider.id() {
             let session = MockAuthProvider.login(nickname)?;
             self.session = Some(session);
+            self.remembered = false;
             self.pending = None;
             self.revision = next;
             self.notice = None;
@@ -124,11 +188,21 @@ impl AuthService {
         login: String,
         password: SecretString,
     ) -> Result<AuthSnapshot> {
+        self.login_password_with_remember(expected, login, password, false)
+    }
+    pub fn login_password_with_remember(
+        &mut self,
+        expected: u32,
+        login: String,
+        password: SecretString,
+        remember: bool,
+    ) -> Result<AuthSnapshot> {
         let next = self.next(expected)?;
+        self.notice = None;
         self.pending = None;
         let client = SecretString::new(Uuid::new_v4().to_string());
         match self.ely.password(&login, &password, None, &client)? {
-            AuthOutcome::Authenticated(session) => self.session = Some(session),
+            AuthOutcome::Authenticated(session) => self.commit_session(session, remember),
             AuthOutcome::TotpRequired { challenge_id } => {
                 self.pending = Some(PendingChallenge {
                     id: challenge_id,
@@ -137,11 +211,11 @@ impl AuthService {
                     client_token: client,
                     expires: Instant::now() + Duration::from_secs(120),
                     attempts: 0,
+                    remember,
                 })
             }
         }
         self.revision = next;
-        self.notice = None;
         Ok(self.snapshot())
     }
     pub fn continue_login(
@@ -171,9 +245,9 @@ impl AuthService {
         );
         match outcome {
             Ok(AuthOutcome::Authenticated(session)) => {
-                self.session = Some(session);
-                self.revision = next;
                 self.notice = None;
+                self.commit_session(session, pending.remember);
+                self.revision = next;
                 Ok(self.snapshot())
             }
             other => {
@@ -217,9 +291,10 @@ impl AuthService {
                 return Err(Error::AuthUnavailable);
             }
         };
-        self.session = Some(fresh);
-        self.revision = next;
+        let remember = self.remembered;
         self.notice = None;
+        self.commit_session(fresh, remember);
+        self.revision = next;
         Ok(self.snapshot())
     }
     pub fn logout(&mut self, expected: u32) -> Result<AuthSnapshot> {
@@ -227,13 +302,21 @@ impl AuthService {
         let session = self.session.take();
         self.pending = None;
         self.revision = next;
+        self.remembered = false;
         self.notice = None;
-        if let Some(s) = session
-            && s.provider_id == self.ely.id()
-            && self.ely.logout(&s).is_err()
-        {
-            self.notice = Some("remote_logout_failed");
-        }
+        let delete_failed = self
+            .credentials
+            .as_ref()
+            .is_some_and(|s| s.delete(super::credentials::REFERENCE).is_err());
+        let remote_failed = session
+            .as_ref()
+            .is_some_and(|s| s.provider_id == self.ely.id() && self.ely.logout(s).is_err());
+        self.notice = match (delete_failed, remote_failed) {
+            (true, true) => Some("logout_cleanup_failed"),
+            (true, false) => Some("credential_delete_failed"),
+            (false, true) => Some("remote_logout_failed"),
+            _ => None,
+        };
         Ok(self.snapshot())
     }
     /// No caller-supplied session. Validate again after installation, immediately before future spawn.
@@ -252,6 +335,10 @@ impl AuthService {
             return MockAuthProvider.identity(session);
         }
         Err(Error::AuthUnavailable)
+    }
+    #[cfg(test)]
+    pub(crate) fn set_test_credentials(&mut self, store: Arc<dyn CredentialStore>) {
+        self.credentials = Some(store);
     }
     #[cfg(test)]
     pub(crate) fn expire_test_challenge(&mut self) {

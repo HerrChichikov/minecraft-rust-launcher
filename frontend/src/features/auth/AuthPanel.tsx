@@ -7,6 +7,7 @@ import {
   continueLogin,
   cancelLogin,
   refreshAuth,
+  restoreAuth,
   logout,
   type AuthSnapshot,
 } from './client';
@@ -21,6 +22,9 @@ const messages: Record<string, string> = {
   auth_challenge_expired: 'Время ввода кода истекло. Введите логин и пароль заново.',
   auth_busy: 'Вход уже выполняется. Дождитесь завершения и обновите состояние.',
   authentication_required: 'Сессия истекла. Выйдите и выполните вход заново.',
+  credential_store_unavailable:
+    'Системное хранилище недоступно или заблокировано. Можно войти на текущую сессию.',
+  saved_session_missing: 'Сохранённой сессии нет. Введите логин и пароль.',
   desktop_required: 'Для входа откройте desktop-приложение.',
 };
 export function AuthPanel() {
@@ -28,6 +32,7 @@ export function AuthPanel() {
   const [nickname, setNickname] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [totp, setTotp] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -99,6 +104,21 @@ export function AuthPanel() {
           {mock && (
             <p className="development-notice">
               Development / Mock доступен только для тестирования, без входа в Ely.by.
+            </p>
+          )}
+          {snapshot.notice === 'credential_store_unavailable' && (
+            <p role="status" className="storage-error">
+              Вход выполнен, но сохранить токены в системном хранилище не удалось. Эта сессия
+              останется только в памяти.
+            </p>
+          )}
+          {(snapshot.notice === 'credential_delete_failed' ||
+            snapshot.notice === 'logout_cleanup_failed') && (
+            <p role="status" className="storage-error">
+              Локальный вход завершён, но очистить системное хранилище не удалось.{' '}
+              {snapshot.notice === 'logout_cleanup_failed' &&
+                'Отзыв сессии в Ely.by также не подтверждён.'}{' '}
+              Повторите удаление сохранённой сессии.
             </p>
           )}
           {snapshot.notice === 'remote_logout_failed' && (
@@ -190,7 +210,7 @@ export function AuthPanel() {
                     e.preventDefault();
                     const secret = password;
                     setPassword('');
-                    void run(() => loginPassword(snapshot, username, secret));
+                    void run(() => loginPassword(snapshot, username, secret, remember));
                   }}
                 >
                   <h3>Ely.by</h3>
@@ -220,6 +240,17 @@ export function AuthPanel() {
                       disabled={busy}
                     />
                   </label>
+                  {snapshot.rememberSupported && (
+                    <label className="remember-choice">
+                      <input
+                        type="checkbox"
+                        checked={remember}
+                        onChange={(e) => setRemember(e.target.checked)}
+                        disabled={busy}
+                      />
+                      Сохранить токены в системном защищённом хранилище
+                    </label>
+                  )}
                   <button
                     className="button button--primary"
                     type="submit"
@@ -264,9 +295,31 @@ export function AuthPanel() {
             </>
           )}
           {busy && <p role="status">Связываемся с провайдером…</p>}
+          {snapshot.rememberSupported && !snapshot.account && !snapshot.challenge && (
+            <div className="installation-actions">
+              <button
+                className="button"
+                type="button"
+                disabled={busy}
+                onClick={() => void run(() => restoreAuth(snapshot))}
+              >
+                Восстановить сохранённую сессию
+              </button>
+              <button
+                className="button"
+                type="button"
+                disabled={busy}
+                onClick={() => void run(() => logout(snapshot))}
+              >
+                Удалить сохранённую сессию
+              </button>
+            </div>
+          )}
           <p className="field-help auth-help">
-            Сессия хранится только до закрытия приложения. Запуск Minecraft появится на следующем
-            этапе.
+            {snapshot.persistence === 'system_credential_store'
+              ? 'Токены сохранены в системном защищённом хранилище. После перезапуска их можно восстановить отдельной кнопкой.'
+              : 'Текущая сессия хранится в памяти до закрытия приложения.'}{' '}
+            Пароль и TOTP не сохраняются. Запуск Minecraft появится на следующем этапе.
           </p>
         </>
       )}

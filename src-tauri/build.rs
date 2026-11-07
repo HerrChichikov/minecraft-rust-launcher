@@ -22,6 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "continue_login",
             "cancel_login",
             "refresh_auth",
+            "restore_auth",
             "get_workspace",
             "create_profile",
             "select_profile",
