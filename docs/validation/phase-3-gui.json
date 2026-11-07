@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-07",
+  "sourceCandidate": "b6a6c14f809afa984121a975a4773c911e935f43",
+  "platform": "macOS ARM64",
+  "build": "packaged Release Launcher.app",
+  "interaction": "native UI via accessibility",
+  "observedOutcomes": [
+    "existing installation: Minecraft и Java подготовлены",
+    "fresh isolated root: Проверка и загрузка файлов, progress visible",
+    "cancel button: Установка отменена; start enabled again",
+    "retry: Проверка и загрузка файлов -> Подготовка Java -> Minecraft и Java подготовлены"
+  ],
+  "installations": [
+    {
+      "root": ".cache/phase-3-install/data",
+      "profileId": "bcfdad9e-d08e-4154-920f-c99266c38204",
+      "metadataSha1": "82ba6501da174a665c1787775f946487422f2432",
+      "downloadedBytes": 0,
+      "reusedBytes": 1022554832,
+      "javaExecutablePresent": true
+    },
+    {
+      "root": ".cache/phase-3-gui-cancel/data",
+      "profileId": "54225110-9015-4758-ba90-9f2e62967e48",
+      "metadataSha1": "82ba6501da174a665c1787775f946487422f2432",
+      "downloadedBytes": 977082831,
+      "reusedBytes": 45472001,
+      "javaExecutablePresent": true
+    }
+  ],
+  "originalDataRootRestored": true,
+  "originalActiveProfileRestored": true,
+  "originalProfileConfigurationsByteIdentical": true,
+  "restoredMaxRamMib": 3072,
+  "worldSentinelPreserved": true,
+  "scope": "Installer UI smoke only; no Minecraft launch, authentication, GPU or package installation test."
+}

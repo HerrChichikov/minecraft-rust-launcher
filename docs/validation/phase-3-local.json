@@ -19,7 +19,7 @@
   "desktopReleaseTests": 8,
   "releaseGuard": "pass: core + desktop",
   "npmAuditVulnerabilities": 0,
-  "guiSmoke": "pending: macOS screen locked, user input requested",
+  "guiSmoke": "pass: macOS ARM64 packaged Release; start/cancel/retry to Ready; original root/profile restored",
   "binariesDistributed": "none: upstream game/runtime/JAR files remain only in ignored test cache",
   "note": "Windows includes one additional executable-path regression test.",
   "package": {
@@ -30,5 +30,6 @@
   },
   "nativeCiRun": 42314460830,
   "nativeCiConclusion": "success on all four targets",
-  "localScenarioScope": "Receipts cover successive development snapshots; final code/workflow is validated separately by native CI on all four targets. Local package is built from final sourceCandidate."
+  "localScenarioScope": "Receipts cover successive development snapshots; final code/workflow is validated separately by native CI on all four targets. Local package is built from final sourceCandidate.",
+  "guiReceipt": "phase-3-gui.json"
 }

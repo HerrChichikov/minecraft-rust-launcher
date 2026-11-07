@@ -1,6 +1,6 @@
 # Phase 3 — Minecraft Installer
 
-Дата: 2026-11-07. **Функциональная реализация и native CI Phase 3 завершены, готовы к review.** Интерактивный desktop GUI smoke не выполнен: Mac заблокирован; пользователю отправлен запрос разблокировки. Phase 4 не начата.
+Дата: 2026-11-07. **Phase 3 завершена и готова к review:** реализация, native CI всех четырёх targets и интерактивный installer GUI smoke на macOS ARM64 пройдены. Phase 4 не начата.
 
 Работают metadata-derived загрузка Minecraft 1.21.1, библиотеки/rules, 3888 уникальных asset objects, logging config, managed Java 21, проверка SHA1/size и repair. Download workers ограничены восемью, temporary network/hash failures имеют максимум три попытки; все redirect destinations проверяются по HTTPS allowlist. Незавершённый файл не публикуется. Отмена кооперативная: между chunks; заблокированный HTTP request ограничен 30 секундами. Metadata control requests также имеют ограниченные retries; offline metadata fallback пока не реализован. Недоступность upstream даёт явную ошибку.
 
@@ -24,7 +24,7 @@ macOS ARM64:
 - Rust: metadata fixtures всех четырёх targets, ordered rules, legal/cyclic/escaping runtime links, corrupt hash retry, offline file reuse, same-size repair, cancellation/oversized write preservation, URL policy, storage suites и IPC ACL. **32 core + 8 desktop tests — pass** (Windows дополнительно проверяет normal/verbatim executable paths); desktop suite также pass в release. Оба release dev-auth guard — pass. npm audit — 0 vulnerabilities.
 
 - Repair Java: новое поколение из проверенного кеша, **0 artifact download bytes**, прежний файл не изменён; world sentinel сохранён; Java/native probes pass.
-- GUI smoke пока недоступен: инструмент сообщает о заблокированном экране Mac; пользователю отправлен запрос разблокировки.
+- GUI smoke packaged Release `.app`: проверка существующей установки — Ready с 0 artifact download bytes; в отдельном пустом root виден progress, Cancel приводит к «Установка отменена», повтор проходит подготовку Java и завершается Ready. Исходные data root/active profile восстановлены, max RAM=3072 МиБ; оба config.json побайтово неизменны. [GUI receipt](validation/phase-3-gui.json).
 
 Локальные receipts: [phase-3-local.json](validation/phase-3-local.json).
 
@@ -34,7 +34,7 @@ reqwest 0.13.5 blocking + Rustls, SHA1 0.10.7 (Mojang compatibility), regex 1.x;
 
 Native CI дополнен реальной установкой/повтором/loader spike на Windows/Linux/macOS Intel/ARM64. Каждый job использует isolated RUNNER_TEMP root; source checkout и packaged app остаются отдельно. CARGO_BUILD_TARGET теперь одинаков для check/test/package, чтобы не собирать release dependencies повторно в другом каталоге.
 
-Остался интерактивный desktop GUI smoke после ручной разблокировки Mac. Code/CLI/native validation и packages подтверждены. Никаких заявлений о готовности полного Minecraft launch/production auth/GPU/install smoke всех пакетов.
+Code/CLI/native validation, packages и installer GUI smoke на доступном macOS ARM64 подтверждены. Полный Minecraft launch/production auth/GPU и установка пакетов на всех ОС относятся к последующим фазам.
 
 ## Native validation findings
 
@@ -55,6 +55,6 @@ Native CI дополнен реальной установкой/повторо�
 
 Сохранены четыре package artifacts и четыре text smoke receipts; game/runtime/JAR binaries в artifacts отсутствуют. IDs, archive digests и step outcomes — [phase-3-ci.json](validation/phase-3-ci.json). Реальная Windows class loading теперь проходит с нормализованным executable path; Intel probe принимает корректный Java os.arch alias.
 
-Локальный ARM64 DMG: `target/release/bundle/dmg/Launcher_0.1.0_aarch64.dmg`, **5 056 003 bytes**, SHA256 `0c2ac15e21c0ece2734bb5b02992f87b086c201f8183e0e7ddc4e6a426685560`; `.app` signature verification pass, internal ad-hoc build. Интерактивный UI не объявляется проверенным: экран Mac недоступен. После разблокировки остаётся проверить start/cancel/retry в окне приложения.
+Локальный ARM64 DMG: `target/release/bundle/dmg/Launcher_0.1.0_aarch64.dmg`, **5 056 003 bytes**, SHA256 `0c2ac15e21c0ece2734bb5b02992f87b086c201f8183e0e7ddc4e6a426685560`; `.app` signature verification pass, internal ad-hoc build. После ручной разблокировки Mac проверены start/cancel/retry в окне этой финальной сборки. Изменения кода после native CI не потребовались.
 
 Следующий функциональный этап — Phase 4 Authentication, по отдельному запросу пользователя. Production release, реальный login/server/game/GPU smoke и notarization не являются результатами Phase 3.

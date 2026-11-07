@@ -1,6 +1,6 @@
 # ADR-009 — metadata-based installer
 
-Дата: 2026-11-07. Статус: принято; native installer validation пройдена, GUI smoke отдельно ожидает разблокировки Mac.
+Дата: 2026-11-07. Статус: принято; native installer validation всех четырёх targets и installer GUI smoke macOS ARM64 пройдены.
 
 InstallEngine работает синхронно в blocking worker; внутри использует reusable reqwest blocking/Rustls client и максимум восемь threads для resource transfer. Выбор оставляет cancellation и bounded file publication понятными без async filesystem abstractions. Java probe использует отдельный Tokio runtime: stdout/stderr читаются одновременно с ограничением размера, timeout/cancel закрывает reader futures и kill/wait child. Длительный I/O не держит WorkspaceState mutex.
 
@@ -12,4 +12,4 @@ URL policy — exact official HTTPS hosts, без userinfo/необычных po
 
 Java os.arch aliases нормализуются; macOS host может отличаться от binary под Rosetta. Windows filesystem capabilities используют verbatim canonical paths, Java-facing executable — normal Win32/UNC representation: native loader spike выявил HotSpot jimage crash с verbatim argv[0]. Преобразование не меняет root authority. Phase 5 применит адаптер к остальным Java-facing paths.
 
-Native CI проверяет реальную установку, zero-artifact-download повтор и loader LWJGL/GLFW/FreeType на четырёх targets. Это не Minecraft launch/GPU/login smoke. Runtime/game binaries не распространяются вместе с launcher packages или CI receipts. GUI smoke отдельно зависит от доступа к разблокированному Mac.
+Native CI проверяет реальную установку, zero-artifact-download повтор и loader LWJGL/GLFW/FreeType на четырёх targets. Это не Minecraft launch/GPU/login smoke. Runtime/game binaries не распространяются вместе с launcher packages или CI receipts. После разблокировки Mac отдельно пройден installer GUI smoke: start/cancel/retry до Ready; исходные root/profile восстановлены.

@@ -60,3 +60,5 @@ Core installer tests: четыре version/rule platform fixtures и asset hash 
 Frontend: installation reconnect, loading, no premature Ready, sequence rollback, operation-ID cancellation, sanitized errors/retry и malformed DTO. Desktop: installer state/unknown cancel/ACL, отказ remote/other window до filesystem initialization. Native debug и release suites выполняются без исключения targets.
 
 Upstream CI smoke: install official Minecraft/Java, recheck with downloadedBytes=0, real LWJGL/GLFW/FreeType loading through installed runtime. Local macOS ARM64 дополнительно проверяет same-size asset repair (9101 bytes only), retained world sentinel и runtime generation repair without rewriting old generation. Это не полный Minecraft/window/GPU/server smoke — он остаётся последующим этапом.
+
+Packaged Release installer GUI на macOS ARM64: start/cancel/retry до Ready, прогресс и terminal outcomes проверены в реальном окне. Исходные data root/active profile восстановлены; profile config bytes и world sentinel сохранены. Receipt — validation/phase-3-gui.json. Это не graphical Minecraft smoke.
