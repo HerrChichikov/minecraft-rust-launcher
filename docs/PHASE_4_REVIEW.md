@@ -1,6 +1,6 @@
 # Phase 4 — Authentication
 
-Дата: 2026-11-07. Реализованы Ely.by password/TOTP (flow согласован пользователем), development mock, backend-owned сессия, optional OS credential storage и verified agent preparation. Локальные проверки, GUI smoke и native CI перечислены ниже по фактическому состоянию. Phase 5 не начата.
+Обновлено: 2026-11-08. Phase 4 завершена в заявленном объёме: Ely.by password/TOTP (flow согласован пользователем), development mock, backend-owned сессия, optional OS credential storage и verified agent preparation. Финальный code commit — `69fafb2595abd563270ba411b329687cbd50b593`; дальнейшая фиксация результатов меняет только документацию. Локальные проверки, GUI smoke и native CI перечислены ниже по фактическому состоянию. Phase 5 не начата.
 
 ## Поведение
 
@@ -10,7 +10,7 @@
 - Logout сначала удаляет local session/challenge, затем пытается отозвать remote token. Неудачный remote revoke возвращается отдельным notice при уже завершённом local logout. signout всех аккаунтов не используется.
 - Session/LaunchIdentity не сериализуются; accessToken/clientToken — zeroizing SecretString с redacted Debug. IPC snapshots содержат только account summary/capabilities/revision/challenge ID. Пароль и TOTP на диск не записываются; без сохранения токены живут только до завершения процесса. Флажок сохранения использует Keychain / Windows Credential Manager / Linux Secret Service; plaintext fallback нет. Без флажка сессия остаётся только в памяти. Копии строк/буферов внутри JS/HTTP runtime не имеют гарантированного полного стирания.
 - Mock type/input/registry branch компилируются только `debug_assertions` + opt-in `dev-auth`; ordinary debug и release не предлагают mock. `npm run dev:mock` включает явно помеченный Development / Mock. Ник: 3–16 ASCII letters/digits/underscore; UUID соответствует Java nameUUIDFromBytes UTF-8 `OfflinePlayer:<exact-name>` без namespace, с сохранением регистра.
-- Tauri get_auth/login/continue_login/cancel_login/refresh_auth/logout доступны только bundled main window; payload deny_unknown_fields. Session/token import и provider URLs из IPC/config отсутствуют. Revision защищает mutations и UI от позднего initial response. AuthService.launch_identity перед будущим spawn повторяет build/provider gate, validate и при необходимости single-flight refresh; Ely.by identity требует verified agent. Play пока отключён.
+- Tauri get_auth/login/continue_login/cancel_login/refresh_auth/restore_auth/logout доступны только bundled main window; payload deny_unknown_fields. Session/token import и provider URLs из IPC/config отсутствуют. Revision защищает mutations и UI от позднего initial response. AuthService.launch_identity перед будущим spawn повторяет build/provider gate, validate и при необходимости single-flight refresh; Ely.by identity требует verified agent. Play пока отключён.
 
 ## Системное хранилище токенов
 
@@ -30,7 +30,13 @@ Pinned official build **56**, version **1.2.8**, source commit `5437f5b465ee3f5b
 
 ## Проверки
 
-Результаты local/GUI/native CI обновляются после завершения. Наличие compile/build/fixture tests не объявляется реальным Ely.by/game/server smoke.
+Финальная native matrix [42350741468](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42350741468) на code commit `69fafb2595abd563270ba411b329687cbd50b593` — success: Frontend quality и все четыре desktop targets (Windows x64, Linux x64, macOS Intel и ARM64). Пройдены default/dev tests, production compile guards, release IPC restrictions, official install/reuse/loader smoke, pinned agent integrity smoke и packaging. Загружено 4 package artifacts и 4 text-receipt artifacts; IDs, digests и steps — [CI receipt](validation/phase-4-ci.json). Headless CI не проверяет реальный account/OS credential store.
+
+Локально: 42 frontend tests; 48 core default / 50 core dev-auth tests (включая subprocess helpers), 12 desktop debug / 12 desktop release tests. Prettier/ESLint/strict TS/Vite, rustfmt, Clippy default/dev-auth, оба production compile guards и offline npm audit (0 vulnerabilities) — pass. Native Keychain disposable roundtrip и official agent download/corruption/repair/reuse — pass. В одном раннем parallel storage run однократно упала lease-reopen assertion; isolated и последующие полные runs прошли. Добавлена диагностика assertion; runtime lock implementation не менялась.
+
+Ручной smoke до добавления OS persistence: development mock login/UUID/refresh/snapshot/logout, потеря memory-only сессии после restart, release Ely.by form без mock — pass. Пользователь самостоятельно ввёл credentials в native Release Launcher и сообщил «Вход выполнен успешно». Это подтверждает live authenticate со слов пользователя на build `5094c3e9f90feba59b7add49ad8c3b45d2f6b5d2`; использование TOTP, upstream refresh/revoke и сохранение реальной сессии не подтверждены. Идентификаторы аккаунта и secrets не включены в отчёт.
+
+Финальная local сборка/хеш и границы GUI проверки — [local receipt](validation/phase-4-local.json). Повторный GUI smoke финального OS-storage build не завершён: инструмент управления native Launcher отвечает тайм-аутом. Успех compile/IPC/HTTP fixtures и disposable Keychain test не выдаётся за GUI roundtrip реального сохранённого account.
 
 - Frontend: production password form без mock, dev capabilities, backend identity/reconnect/logout, password clearing, TOTP continuation/cancel, pending/sanitized errors, failed remote logout notice, stale response ordering, malformed/spoofed DTO.
 - Core HTTP fixtures: authenticate, wrong password/TOTP, challenge expiry/cancel, refresh rotation/client binding, empty validate/invalidate, HTTP 503/302/malformed/oversized response, failed refresh preservation/local logout, validate/refresh at launch boundary без fallback.
@@ -41,8 +47,21 @@ Pinned official build **56**, version **1.2.8**, source commit `5437f5b465ee3f5b
 
 ## Ограничения
 
-Реальный вход test account в Ely.by, TOTP/refresh/revoke на upstream, совместимость agent/Game 1.21.1/server ещё не подтверждены. Mock не считается доказательством real auth. Memory-only session не переживает restart; сохранённая сессия восстанавливается явной кнопкой, после validate+refresh на Ely.by. Desktop supervisor удаляет expired challenge, backend HTTP timeout ограничивает задержку очистки при активном request. AuthProvider — bounded synchronous contract, вызываемый на blocking worker, как InstallEngine; Tokio desktop используется для deadline supervisor.
+Live authenticate подтверждён пользователем; TOTP/refresh/revoke на upstream, реальный saved-account restore и совместимость agent/Game 1.21.1/server ещё не подтверждены. Mock не считается доказательством real auth. Memory-only session не переживает restart; сохранённая сессия восстанавливается явной кнопкой, после validate+refresh на Ely.by. Desktop supervisor удаляет expired challenge, backend HTTP timeout ограничивает задержку очистки при активном request. AuthProvider — bounded synchronous contract, вызываемый на blocking worker, как InstallEngine; Tokio desktop используется для deadline supervisor.
 
-Первый CI run 42346631288 не начал ни одного шага из-за account billing/spending restriction. Пользователь отдельно подтвердил перевод репозитория в Public; API подтвердил public visibility. Повторная native matrix должна проверить финальный code commit; старый blocked run не считается валидацией.
+Первый CI run 42346631288 не начал ни одного шага из-за account billing/spending restriction. Пользователь отдельно подтвердил перевод репозитория в Public; API подтвердил public visibility. Финальный run 42350741468 завершился успешно; старый blocked run не считается валидацией. Billing/payment settings не изменялись.
+
+## Изменённые модули и критерии выхода
+
+Core: `crates/launcher-core/src/auth/` (provider/service/Ely.by/mock/credentials/agent), ошибки и dependency features. Desktop: `src-tauri/src/commands/auth.rs`, `src-tauri/src/credentials.rs`, main-only capabilities/command manifest, examples. Frontend: `frontend/src/features/auth/`, contract/tests и интеграция панели. Также обновлены lockfiles, CI/guard scripts, ADR, security/interface/development docs и agent license notice.
+
+| Критерий Phase 4 | Результат |
+|---|---|
+| AuthProvider и backend session owner | Реализованы; HTTP/service/IPC tests pass |
+| Mock только opt-in development, production запрет backend | Реализован; Java UUID golden vector и оба compile guards pass |
+| Ely.by flow согласован и реализован по документации | Password + TOTP выбран пользователем; fixture coverage pass; live authenticate подтверждён пользователем |
+| Authlib Injector preparation и лицензия | Official pinned download/integrity/argv, license/source notice; execution относится к Phase 5 |
+| OS credential storage без plaintext fallback | Native adapters + injected roundtrip/failure tests; macOS disposable native API smoke pass; live Windows/Linux остаются platform validation |
+| Cross-platform build/tests | Все четыре native CI targets success |
 
 Следующий функциональный этап — Phase 5 Launch Engine по отдельному запросу пользователя.

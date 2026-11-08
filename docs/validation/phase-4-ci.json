@@ -1,0 +1,835 @@
+{
+  "schemaVersion": 1,
+  "phase": 4,
+  "verifiedAt": "2026-11-08",
+  "repository": "HerrChichikov/minecraft-rust-launcher",
+  "visibility": "public",
+  "sourceCommit": "69fafb2595abd563270ba411b329687cbd50b593",
+  "sourceTree": "04d84204872ee03c490d16af6fee5351c88b50ee",
+  "run": {
+    "id": 42350741468,
+    "url": "https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42350741468",
+    "status": "completed",
+    "conclusion": "success",
+    "attempt": 1,
+    "createdAt": "2026-11-07T07:18:40Z",
+    "completedAt": "2026-11-07T07:39:17Z"
+  },
+  "jobs": [
+    {
+      "id": 128338127824,
+      "name": "Frontend quality",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42350741468,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run npm run check",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Run npm audit --audit-level=moderate",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        }
+      ]
+    },
+    {
+      "id": 128338127951,
+      "name": "Desktop / aarch64-apple-darwin",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42350741468,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Linux native prerequisites",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Check Rust target architecture",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Run npm run lint",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Run npm run build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run cargo test --workspace --features dev-auth --locked",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Production feature guard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Release IPC restrictions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Official Minecraft and Java install smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Pinned Authlib Injector download and integrity smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Upload installer smoke receipts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Package desktop application",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 39
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 40
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 41
+        }
+      ]
+    },
+    {
+      "id": 128338128045,
+      "name": "Desktop / x86_64-unknown-linux-gnu",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42350741468,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Linux native prerequisites",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Check Rust target architecture",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Run npm run lint",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Run npm run build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run cargo test --workspace --features dev-auth --locked",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Production feature guard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Release IPC restrictions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Official Minecraft and Java install smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Pinned Authlib Injector download and integrity smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Upload installer smoke receipts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Package desktop application",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 39
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 40
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 41
+        }
+      ]
+    },
+    {
+      "id": 128338128053,
+      "name": "Desktop / x86_64-pc-windows-msvc",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42350741468,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Linux native prerequisites",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Check Rust target architecture",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Run npm run lint",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Run npm run build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run cargo test --workspace --features dev-auth --locked",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Production feature guard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Release IPC restrictions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Official Minecraft and Java install smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Pinned Authlib Injector download and integrity smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Upload installer smoke receipts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Package desktop application",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 39
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 40
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 41
+        }
+      ]
+    },
+    {
+      "id": 128338128080,
+      "name": "Desktop / x86_64-apple-darwin",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 42350741468,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Linux native prerequisites",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Check Rust target architecture",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Run npm run lint",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Run npm run build",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Run cargo test --workspace --features dev-auth --locked",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Production feature guard",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Release IPC restrictions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        },
+        {
+          "name": "Official Minecraft and Java install smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 16
+        },
+        {
+          "name": "Pinned Authlib Injector download and integrity smoke",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Upload installer smoke receipts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Package desktop application",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 20
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 39
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 40
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 41
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13565718610,
+      "name": "launcher-installer-x86_64-pc-windows-msvc",
+      "size_in_bytes": 9036253,
+      "url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565718610",
+      "archive_download_url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565718610/zip",
+      "expired": false,
+      "created_at": "2026-11-07T07:33:47Z",
+      "expires_at": "2026-11-21T07:33:45Z",
+      "updated_at": "2026-11-07T07:33:47Z",
+      "digest": "sha256:a1ba107b92bd33c067ebe45c63a57490f2615693c29d750a77f76f0f03165914",
+      "workflow_run": {
+        "id": 42350741468,
+        "repository_id": 1448499055,
+        "head_repository_id": 1448499055,
+        "head_branch": "codex/phase-4-authentication",
+        "head_sha": "69fafb2595abd563270ba411b329687cbd50b593"
+      }
+    },
+    {
+      "id": 13565548619,
+      "name": "installer-smoke-x86_64-pc-windows-msvc",
+      "size_in_bytes": 7889,
+      "url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565548619",
+      "archive_download_url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565548619/zip",
+      "expired": false,
+      "created_at": "2026-11-07T07:31:20Z",
+      "expires_at": "2026-11-21T07:31:19Z",
+      "updated_at": "2026-11-07T07:31:20Z",
+      "digest": "sha256:0a6cca9d21ddf39344c119d60f9b137719954b6cd37098b0c9328d479844ae7d",
+      "workflow_run": {
+        "id": 42350741468,
+        "repository_id": 1448499055,
+        "head_repository_id": 1448499055,
+        "head_branch": "codex/phase-4-authentication",
+        "head_sha": "69fafb2595abd563270ba411b329687cbd50b593"
+      }
+    },
+    {
+      "id": 13565544673,
+      "name": "launcher-installer-x86_64-apple-darwin",
+      "size_in_bytes": 5612729,
+      "url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565544673",
+      "archive_download_url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565544673/zip",
+      "expired": false,
+      "created_at": "2026-11-07T07:39:08Z",
+      "expires_at": "2026-11-21T07:39:04Z",
+      "updated_at": "2026-11-07T07:39:08Z",
+      "digest": "sha256:d454d8fa462b9918eb20a46b881e293e100d7e5e40fb4a3303f9cd6af0a6e8a0",
+      "workflow_run": {
+        "id": 42350741468,
+        "repository_id": 1448499055,
+        "head_repository_id": 1448499055,
+        "head_branch": "codex/phase-4-authentication",
+        "head_sha": "69fafb2595abd563270ba411b329687cbd50b593"
+      }
+    },
+    {
+      "id": 13565523243,
+      "name": "installer-smoke-aarch64-apple-darwin",
+      "size_in_bytes": 7568,
+      "url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565523243",
+      "archive_download_url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565523243/zip",
+      "expired": false,
+      "created_at": "2026-11-07T07:28:11Z",
+      "expires_at": "2026-11-21T07:28:10Z",
+      "updated_at": "2026-11-07T07:28:11Z",
+      "digest": "sha256:8e791d4c51c3c07a36abbf87b28f981c12bd1cf5720e27b2fb7fdfdaa13b5223",
+      "workflow_run": {
+        "id": 42350741468,
+        "repository_id": 1448499055,
+        "head_repository_id": 1448499055,
+        "head_branch": "codex/phase-4-authentication",
+        "head_sha": "69fafb2595abd563270ba411b329687cbd50b593"
+      }
+    },
+    {
+      "id": 13565513661,
+      "name": "launcher-installer-aarch64-apple-darwin",
+      "size_in_bytes": 5160834,
+      "url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565513661",
+      "archive_download_url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565513661/zip",
+      "expired": false,
+      "created_at": "2026-11-07T07:30:03Z",
+      "expires_at": "2026-11-21T07:30:01Z",
+      "updated_at": "2026-11-07T07:30:03Z",
+      "digest": "sha256:6de7451cb4efb79b5ccbb11080431825f36f86115a3c9edc40d983eee0ac32c9",
+      "workflow_run": {
+        "id": 42350741468,
+        "repository_id": 1448499055,
+        "head_repository_id": 1448499055,
+        "head_branch": "codex/phase-4-authentication",
+        "head_sha": "69fafb2595abd563270ba411b329687cbd50b593"
+      }
+    },
+    {
+      "id": 13565214700,
+      "name": "launcher-installer-x86_64-unknown-linux-gnu",
+      "size_in_bytes": 6733675,
+      "url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565214700",
+      "archive_download_url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565214700/zip",
+      "expired": false,
+      "created_at": "2026-11-07T07:28:17Z",
+      "expires_at": "2026-11-21T07:28:16Z",
+      "updated_at": "2026-11-07T07:28:17Z",
+      "digest": "sha256:16f721ed615fee0053758170ca7efb6485789d1d8a12f65075ab03bf1a74bac5",
+      "workflow_run": {
+        "id": 42350741468,
+        "repository_id": 1448499055,
+        "head_repository_id": 1448499055,
+        "head_branch": "codex/phase-4-authentication",
+        "head_sha": "69fafb2595abd563270ba411b329687cbd50b593"
+      }
+    },
+    {
+      "id": 13565019095,
+      "name": "installer-smoke-x86_64-unknown-linux-gnu",
+      "size_in_bytes": 7060,
+      "url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565019095",
+      "archive_download_url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565019095/zip",
+      "expired": false,
+      "created_at": "2026-11-07T07:27:09Z",
+      "expires_at": "2026-11-21T07:27:08Z",
+      "updated_at": "2026-11-07T07:27:09Z",
+      "digest": "sha256:9f19a72025bd663922ac4bf41738a17a2921229ed6ac32009c2f747b9c823396",
+      "workflow_run": {
+        "id": 42350741468,
+        "repository_id": 1448499055,
+        "head_repository_id": 1448499055,
+        "head_branch": "codex/phase-4-authentication",
+        "head_sha": "69fafb2595abd563270ba411b329687cbd50b593"
+      }
+    },
+    {
+      "id": 13565014660,
+      "name": "installer-smoke-x86_64-apple-darwin",
+      "size_in_bytes": 7621,
+      "url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565014660",
+      "archive_download_url": "https://api.github.com/repos/HerrChichikov/minecraft-rust-launcher/actions/artifacts/13565014660/zip",
+      "expired": false,
+      "created_at": "2026-11-07T07:34:22Z",
+      "expires_at": "2026-11-21T07:34:20Z",
+      "updated_at": "2026-11-07T07:34:22Z",
+      "digest": "sha256:04f0ffc8ab8df602c52273e03023b4894fa5f230c9b63a7c6e64337b5bd0649f",
+      "workflow_run": {
+        "id": 42350741468,
+        "repository_id": 1448499055,
+        "head_repository_id": 1448499055,
+        "head_branch": "codex/phase-4-authentication",
+        "head_sha": "69fafb2595abd563270ba411b329687cbd50b593"
+      }
+    }
+  ],
+  "limitations": [
+    "Headless CI does not test a live Ely.by account or native OS credential store.",
+    "Authlib Injector smoke verifies download, integrity, corruption rejection and reuse, without game execution.",
+    "Artifacts are internal unsigned/ad-hoc builds, not notarized production releases."
+  ]
+}

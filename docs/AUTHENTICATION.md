@@ -1,6 +1,6 @@
 # Авторизация
 
-Статус Phase 4: пользователь выбрал password + TOTP; реализованы Ely.by authenticate/refresh/validate/invalidate, backend challenge и backend-owned session с optional OS persistence, development mock и production guards. Реальные upstream authenticate/refresh/session join с пользовательским аккаунтом ещё не выполнялись. Public injector metadata Ely.by получены и сохранены в [снимке](research/ely-api-metadata.json).
+Статус Phase 4: пользователь выбрал password + TOTP; реализованы Ely.by authenticate/refresh/validate/invalidate, backend challenge и backend-owned session с optional OS persistence, development mock и production guards. Успешный upstream authenticate подтверждён пользователем в native Release Launcher; использование TOTP, upstream refresh/revoke, real saved-account restore и session join ещё не подтверждены. Итоги и tested commits — в [Phase 4 review](PHASE_4_REVIEW.md). Public injector metadata Ely.by получены и сохранены в [снимке](research/ely-api-metadata.json).
 
 ## Два документированных семейства
 

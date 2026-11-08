@@ -2,7 +2,7 @@
 
 Основа desktop-лаунчера Minecraft Java Edition на Tauri 2, Rust и React / TypeScript / SCSS / Vite.
 
-**Текущий этап — Phase 4: Authentication.** Реализованы Ely.by password/TOTP, refresh/validate/logout, development mock (только debug + `dev-auth`), backend-сессия в памяти и capability-based UI. Реальный upstream login требует отдельного smoke с test account; по явному выбору токены сохраняются в системном защищённом хранилище; доступны восстановление и удаление сохранённой сессии. Установщик и профили сохранены; запуск игры — Phase 5, «Играть» отключена. Результаты — [Phase 4 review](docs/PHASE_4_REVIEW.md).
+**Phase 4: Authentication завершена.** Реализованы Ely.by password/TOTP, refresh/validate/logout, development mock (только debug + `dev-auth`), backend-сессия в памяти и capability-based UI. Успешный реальный вход Ely.by подтверждён пользователем; все четыре native CI targets пройдены; по явному выбору токены сохраняются в системном защищённом хранилище; доступны восстановление и удаление сохранённой сессии. Установщик и профили сохранены; запуск игры — Phase 5, «Играть» отключена. Результаты — [Phase 4 review](docs/PHASE_4_REVIEW.md).
 
 ## Запуск разработки
 
@@ -65,4 +65,4 @@ npm run tauri -- build --ci -- --locked
 
 Исследовательские снимки проверяются offline: `python3 docs/research/verify_snapshot.py`. Эта проверка не заменяет application tests.
 
-Phase 4 не начинается автоматически. Перед публичным выпуском нужны реальная авторизация, игровой smoke на всех платформах и согласованная подпись/распространение.
+Phase 5 не начинается автоматически. Перед production-выпуском нужны real session/game/server smoke на всех платформах и согласованная подпись/распространение.

@@ -56,11 +56,11 @@ App name `Launcher` и bundle ID `dev.launcher.desktop` — рабочие зн�
 
 ## Реальные границы
 
-`ApplicationService::snapshot()` читает build/platform и возвращает feature availability. `src-tauri` превращает её в DTO schema v1; единственное разрешение main window — allow-get-snapshot. Другие окна/remote origin и login/play/fs/shell команды отклоняются в tests. Серверных запросов и произвольных filesystem APIs у frontend нет.
+`ApplicationService::snapshot()` читает build/platform и возвращает feature availability. `src-tauri` превращает её в DTO schema v1. Main window имеет явные разрешения snapshot/storage/installation/auth; другие окна и remote origin отклоняются в actual IPC tests. Play и произвольные fs/shell/http APIs у frontend отсутствуют; сетевой I/O выполняет backend.
 
-`dev-auth` зарезервирован для Phase 4, без MockAuthProvider. В release запрещается и core cfg guard, и desktop build profile guard. Не объясняем feature как готовый mock login. SecretString и LaunchSpec не сериализуются, Debug скрывает токены/argv.
+`dev-auth` включает MockAuthProvider только с debug assertions; используйте `npm run dev:mock`. В release его запрещают и core cfg guard, и desktop build profile guard. SecretString, session и LaunchIdentity не сериализуются; Debug скрывает secrets. Production registry содержит только Ely.by.
 
-Контракты остальных модулей — API scaffolding с documentation, без TODO/unimplemented bodies и без успешных заглушек. Перед Phase 2 уточняются schema/path invariants; перед Phase 3 — cancellation/resource verification contracts. Код следующего этапа не объявляется работающим заранее.
+Storage/profiles, installer/runtime и authentication реализованы на этапах 2–4. Launch Engine остаётся следующим этапом; agent preparation не запускает Minecraft. Статус и ограничения каждого этапа зафиксированы в review.
 
 ## Отчёты
 

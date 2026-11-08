@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-08",
+  "sourceCandidate": "69fafb2595abd563270ba411b329687cbd50b593",
+  "platform": "macOS ARM64",
+  "frontendTests": 42,
+  "coreDefaultTests": 48,
+  "coreDevAuthTests": 50,
+  "desktopDebugTests": 12,
+  "desktopReleaseTests": 12,
+  "formatClippy": "pass, default and dev-auth",
+  "releaseFeatureGuards": "pass, core and desktop",
+  "npmAuditVulnerabilities": 0,
+  "guiSmoke": {
+    "previousBuild": "5094c3e9f90feba59b7add49ad8c3b45d2f6b5d2",
+    "development": "pass before OS persistence: login golden UUID / refresh / snapshot / logout / process restart loses memory session",
+    "release": "pass before OS persistence: Ely.by password form, no mock provider/input, Play disabled",
+    "originalConfigurationFilesByteIdentical": true,
+    "originalConfigurationFilesChecked": 4,
+    "realElyByLogin": {
+      "result": "pass, user-reported",
+      "sourceBuild": "5094c3e9f90feba59b7add49ad8c3b45d2f6b5d2",
+      "evidence": "User independently entered credentials in native Release Launcher and reported successful login. No account identifiers recorded."
+    },
+    "finalOsPersistenceBuild": "not completed: native UI automation repeatedly timed out selecting Launcher; no final GUI pass claimed",
+    "upstreamTotpRefreshRevoke": "not independently verified",
+    "realSavedAccountRestore": "not performed"
+  },
+  "agentSmoke": {
+    "build": 56,
+    "version": "1.2.8",
+    "bytes": 349681,
+    "sha256": "9c7f4343e6c82034958ffb48c14a2cb0c85928be7283103ce17da00c6d5a7b10",
+    "downloadVerification": "pass",
+    "sameSizeCorruptionRejected": true,
+    "repair": "pass",
+    "reuse": "pass",
+    "execution": "not attempted"
+  },
+  "package": {
+    "path": "target/release/bundle/dmg/Launcher_0.1.0_aarch64.dmg",
+    "bytes": 5188553,
+    "sha256": "3b7715a4f9b74eb24d85d99a6702ff54131079a223db0ad837f36aa49749ed42",
+    "signing": "internal ad-hoc; codesign --verify --deep --strict passed; not notarized"
+  },
+  "earlierFailure": "One lease-reopen assertion in a parallel storage test failed once; isolated and full-suite reruns passed. Diagnostics improved; runtime lock code unchanged.",
+  "note": "Final code validated by native CI run 42350741468 on all four targets. Final local release app/dmg built from sourceCandidate with locked dependencies. Subsequent changes are documentation only. GUI outcomes identify their earlier source build explicitly.",
+  "nativeCredentialSmoke": {
+    "platform": "macOS ARM64",
+    "result": "pass: disposable native Keychain write/read/delete/NoEntry",
+    "namespace": "dev.launcher.desktop.smoke",
+    "realAccountCredentialsTouched": false,
+    "command": "cargo run -p launcher-desktop --example credential_smoke --locked",
+    "windowsLinuxLiveStore": "not performed; native compilation and injected fixtures passed in CI"
+  }
+}
