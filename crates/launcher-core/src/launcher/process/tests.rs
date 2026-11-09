@@ -13,6 +13,8 @@ fn game_process_child() -> std::io::Result<()> {
         return Ok(());
     }
     println!("stdout fixture {FIXTURE_TOKEN}");
+    let (prefix, suffix) = FIXTURE_TOKEN.split_at(8);
+    println!("stdout fixture {prefix}\0{suffix}");
     eprintln!("stderr fixture");
     if Path::new("wait-for-stop").exists() {
         std::thread::sleep(Duration::from_secs(15));

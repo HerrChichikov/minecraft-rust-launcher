@@ -257,16 +257,15 @@ fn record(
     let text = if oversized {
         "[длинная строка пропущена]".into()
     } else {
-        let line = String::from_utf8_lossy(line);
-        let line = line.trim_end_matches('\r');
+        let line: String = String::from_utf8_lossy(line)
+            .chars()
+            .filter(|c| !c.is_control() || *c == '\t')
+            .collect();
         if !token.is_empty() && line.contains(token) {
             // Drop the whole line, including neighboring fragments of sensitive output.
             "[строка с токеном скрыта]".into()
         } else {
-            line.chars()
-                .filter(|c| !c.is_control() || *c == '\t')
-                .take(LINE_LIMIT / 2)
-                .collect()
+            line.chars().take(LINE_LIMIT / 2).collect()
         }
     };
     if let Ok(mut output) = output.lock() {
