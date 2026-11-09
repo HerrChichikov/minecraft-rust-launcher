@@ -6,7 +6,6 @@ use crate::{
 use cap_std::fs::Dir;
 use serde::{Deserialize, Serialize};
 use std::{
-    fs::File,
     path::{Path, PathBuf},
     sync::Arc,
 };
@@ -39,14 +38,14 @@ pub(super) struct Root {
     pub(super) id: Uuid,
     path: PathBuf,
     pub(super) dir: Dir,
-    _lock: File,
+    _lock: fs::FileLease,
     policy: SettingsPolicy,
 }
 
 #[derive(Debug)]
 pub struct ProfileLease {
     _root: Arc<Root>,
-    _lock: File,
+    _lock: fs::FileLease,
     pub profile_id: ProfileId,
 }
 
@@ -69,7 +68,7 @@ pub struct WorkspaceSnapshot {
 pub struct WorkspaceService {
     config: Dir,
     config_path: PathBuf,
-    _app_lock: File,
+    _app_lock: fs::FileLease,
     bootstrap: Bootstrap,
     pub(super) root: Arc<Root>,
     policy: SettingsPolicy,
@@ -361,7 +360,7 @@ impl Root {
         validation::id(selection.active_profile_id)?;
         Ok(selection)
     }
-    fn profile_lock(&self, id: ProfileId) -> Result<File> {
+    fn profile_lock(&self, id: ProfileId) -> Result<fs::FileLease> {
         validation::id(id)?;
         fs::lock(
             &fs::descendants(&self.dir, "state/locks", false)?,

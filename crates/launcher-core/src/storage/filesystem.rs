@@ -229,7 +229,18 @@ pub fn sync(dir: &Dir) -> Result<()> {
     Ok(())
 }
 
-pub fn lock(dir: &Dir, name: &str) -> Result<std::fs::File> {
+#[derive(Debug)]
+pub struct FileLease(std::fs::File);
+
+impl Drop for FileLease {
+    fn drop(&mut self) {
+        // A concurrent spawn can transiently duplicate the descriptor before exec.
+        // Release the lease now even if the kernel still holds such a duplicate.
+        let _ = self.0.unlock();
+    }
+}
+
+pub fn lock(dir: &Dir, name: &str) -> Result<FileLease> {
     regular(dir, name)?;
     let file = dir
         .open_with(name, options().read(true).write(true).create(true))?
@@ -241,12 +252,27 @@ pub fn lock(dir: &Dir, name: &str) -> Result<std::fs::File> {
         std::fs::TryLockError::WouldBlock => Error::StorageBusy,
         std::fs::TryLockError::Error(e) => Error::Storage(e),
     })?;
-    Ok(file)
+    Ok(FileLease(file))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(unix)]
+    #[test]
+    fn releasing_a_lease_unlocks_even_with_a_duplicated_descriptor() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let (_, dir) = open_root(temp.path())?;
+        let lease = lock(&dir, "lease.lock")?;
+        let inherited = lease.0.try_clone()?;
+        assert!(matches!(lock(&dir, "lease.lock"), Err(Error::StorageBusy)));
+        drop(lease);
+        let reopened = lock(&dir, "lease.lock")?;
+        drop(inherited);
+        drop(reopened);
+        Ok(())
+    }
     #[test]
     fn portable_paths_reject_traversal_windows_devices_and_alternate_streams() {
         for path in [

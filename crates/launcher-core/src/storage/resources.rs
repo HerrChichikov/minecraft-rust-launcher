@@ -20,7 +20,7 @@ pub struct ResourceStore {
     path: std::path::PathBuf,
     pub root_id: Uuid,
     _profile: ProfileLease,
-    _installation: std::fs::File,
+    _installation: fs::FileLease,
 }
 impl WorkspaceService {
     pub fn installation_store(

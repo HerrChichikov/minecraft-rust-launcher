@@ -560,7 +560,11 @@ fn future_root_marker_and_selection_are_preserved() -> Result {
         drop(service);
         let before = "{\"schemaVersion\":42,\"future\":true}";
         fs::write(&path, before)?;
-        assert!(matches!(open(temp.path()), Err(Error::UnsupportedSchema)));
+        let reopened = open(temp.path());
+        assert!(
+            matches!(reopened, Err(Error::UnsupportedSchema)),
+            "reopening {target} returned {reopened:?}"
+        );
         assert_eq!(fs::read_to_string(&path)?, before);
     }
     Ok(())
