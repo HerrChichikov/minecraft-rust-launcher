@@ -32,7 +32,7 @@ Metadata JVM arguments обязательно сохраняют macOS `-XstartO
 
 В snapshot 21 уникальный game/JVM placeholder. `${classpath_separator}` не встречается в этой ревизии, но если появится в поддержанном metadata, его смысл — platform delimiter; `${path}` относится отдельно к logging config. `auth_session` не встречается: не добавляем выдуманный session UUID в game args.
 
-Пустые `clientid` и `auth_xuid` проверены реальным development-запуском. Вход в Ely.by в Phase 4 и smoke Authlib Injector подтверждают отдельные части пути. Совместимость Ely.by с игровым сервером требует отдельной проверки.
+Пустые `clientid` и `auth_xuid` проверены реальным development-запуском. Вход в Ely.by подтверждён в Phase 4, а запуск Authlib Injector в игровой JVM проверен в Phase 5 с синтетической сессией. Совместимость Ely.by с игровым сервером требует отдельной проверки.
 
 ## JVM настройки
 

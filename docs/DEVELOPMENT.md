@@ -60,7 +60,7 @@ App name `Launcher` и bundle ID `dev.launcher.desktop` — рабочие зн�
 
 `dev-auth` включает MockAuthProvider только с debug assertions; используйте `npm run dev:mock`. В release его запрещают и core cfg guard, и desktop build profile guard. SecretString, session и LaunchIdentity не сериализуются; Debug скрывает secrets. Production registry содержит только Ely.by.
 
-Storage/profiles, installer/runtime и authentication реализованы на этапах 2–4. Launch Engine остаётся следующим этапом; agent preparation не запускает Minecraft. Статус и ограничения каждого этапа зафиксированы в review.
+Storage/profiles, installer/runtime и authentication реализованы на этапах 2–4. Phase 5 добавила запуск Minecraft и управление процессом. Статус и ограничения каждого этапа зафиксированы в review.
 
 ## Отчёты
 
@@ -93,3 +93,16 @@ Linux build prerequisites в CI загружаются с official archive.ubunt
 Ely.by доступен в обычных debug/release сборках: login/password, отдельный TOTP challenge, обновление/выход. Credentials вводите только в desktop форме; не передавайте их через CLI arguments/chat/fixtures. По умолчанию сессия memory-only; флажок сохраняет токены только в OS store. Неверный код можно повторить до истечения challenge; cancel возвращает форму пароля. Для повторного upstream smoke необходим собственный test account, его успешный login не подменяется fixture tests.
 
 Сохранённая сессия восстанавливается отдельной кнопкой (validate+refresh), без чтения keychain при обычном get_auth. Удалить saved session можно без входа отдельной кнопкой. `cargo run -p launcher-desktop --example credential_smoke --locked` создаёт новый уникальный record в test-only namespace, читает и удаляет его; не используйте реальные токены в smoke. Store unavailable — явный memory-only outcome, без файлового fallback.
+
+
+## Phase 5 — тестовый запуск игры
+
+В `npm run dev:mock` войдите под тестовым ником и нажмите «Играть». Launcher проверяет ресурсы официальной версии и использует настройки Java и RAM активного профиля. Свою Java задавайте абсолютным путём в профиле. Для штатного сохранения мира завершайте игру через меню Minecraft.
+
+Опциональный core smoke принимает отдельный тестовый root, подготовленный `install_smoke`. Второй аргумент задаёт время до принудительной остановки. Для прогона без таймера закройте игру вручную через её меню.
+
+```sh
+cargo run -p launcher-core --locked --features dev-auth --example launch_smoke -- /absolute/test-root 30
+```
+
+Последний ограниченный журнал сохраняется в `profiles/<id>/logs/launcher-last-run.json`. Восстановление после сбоя описано в [Launch Process](LAUNCH_PROCESS.md), результаты — в [Phase 5 review](PHASE_5_REVIEW.md).

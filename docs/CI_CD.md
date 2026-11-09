@@ -1,6 +1,6 @@
 # CI/CD
 
-Создан [.github/workflows/ci.yml](../.github/workflows/ci.yml). Workflow запускается по push, pull_request и workflow_dispatch, с `contents: read`, отменой устаревших runs и без release publishing/signing secrets. Наличие YAML не равно успешному run: актуальные результаты перечислены в [Phase 4 review](PHASE_4_REVIEW.md), предыдущие этапы зафиксированы ниже.
+Создан [.github/workflows/ci.yml](../.github/workflows/ci.yml). Workflow запускается по push, pull_request и workflow_dispatch, с `contents: read`, отменой устаревших runs и без release publishing/signing secrets. Наличие YAML не равно успешному run: актуальные результаты перечислены в [Phase 5 review](PHASE_5_REVIEW.md), предыдущие этапы зафиксированы ниже.
 
 Phase 1 matrix подтверждена [успешным run 42259358488](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42259358488) на source commit `0f9480b9ac5058683728296472fe9325384e5283`: frontend quality и четыре native desktop jobs, 4 uploaded target artifacts. Фиксация этих результатов — documentation-only; application source и workflow после проверенного коммита не меняются.
 
@@ -27,7 +27,7 @@ Actions checkout 7.0.1, setup-node 7.1.0, upload-artifact 7.0.2 закрепле
 
 ## Production guard
 
-`scripts/check-release-guard.py` требует nonzero compiler outcome с точным `LAUNCHER_DEV_AUTH_FORBIDDEN` для core и desktop. Случайная ошибка компиляции не считается pass. Release IPC tests проверяют разрешённые snapshot/storage/auth commands и отказ чужому window/remote origin. Начиная с Phase 4 production registry разрешает только Ely.by: forged mock provider/input и unknown fields отвергаются backend. Mock input type отсутствует в release; Play/fs/shell commands недоступны.
+`scripts/check-release-guard.py` требует nonzero compiler outcome с точным `LAUNCHER_DEV_AUTH_FORBIDDEN` для core и desktop. Случайная ошибка компиляции не считается pass. Release IPC tests проверяют разрешённые snapshot/storage/auth commands и отказ чужому window/remote origin. Начиная с Phase 4 production registry разрешает только Ely.by: forged mock provider/input и unknown fields отвергаются backend. Mock input type отсутствует в release. Phase 5 добавляет main-only game commands, IPC проверяет, что запуск требует backend-сессию. Произвольные fs/shell команды недоступны.
 
 ## Packaging и подпись
 
@@ -54,3 +54,10 @@ Phase 3 финальный [run 42314460830](https://github.com/HerrChichikov/mi
 Финальный [run 42350741468](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42350741468) — success на `69fafb2595abd563270ba411b329687cbd50b593`: frontend quality и четыре native jobs. Default/dev-auth workspace tests, production feature guards, release IPC restrictions, official installer/Java reuse/loader smoke, pinned agent download/integrity/corruption/repair и package builds прошли на Windows x64, Linux x64, macOS Intel и ARM64. Четыре package artifacts и четыре receipt artifacts перечислены с digest в [phase-4-ci.json](validation/phase-4-ci.json). Финальная публикация результатов — documentation-only `[skip ci]`.
 
 Перед запуском пользователь отдельно подтвердил перевод репозитория в Public; visibility проверена через API. Первоначальный private run 42346631288 был заблокирован account billing/spending limit ещё до выполнения steps; он не считается тестированием. Billing settings не менялись. Headless jobs используют HTTP fixtures/injected credential store, не получают credentials реального Ely.by account и не считаются native keychain GUI test. Agent JAR и игровые/runtime файлы не входят в artifacts.
+
+
+## Phase 5 matrix
+
+[Run 42701859712](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42701859712) завершён успешно на `33b5362f811dbc0556e4dd866339129cf1be93af`. Windows job повторён на том же коммите после сбоя HTTP fixture в development-тестах. Frontend и другие платформы сохранили результаты первой попытки. Новые проверки охватывают argv, процесс и его вывод, восстановление блокировок и ACL. CI публикует четыре пакета и четыре отчёта установщика. [Артефакты, шаги и digest](validation/phase-5-ci.json).
+
+Реальный графический запуск выполнен отдельно на macOS ARM64. CI проверяет подготовку, сборку и тестовые дочерние процессы. Вход в Minecraft-сервер с реальным Ely.by аккаунтом остаётся отдельной проверкой.

@@ -1,0 +1,425 @@
+{
+  "schemaVersion": 1,
+  "phase": 5,
+  "verifiedAt": "2026-11-10",
+  "repository": "HerrChichikov/minecraft-rust-launcher",
+  "sourceCommit": "33b5362f811dbc0556e4dd866339129cf1be93af",
+  "sourceTree": "6b9f3e1fe887e7214a9fb9e2c0b0a218183bd5d8",
+  "run": {
+    "id": 42701859712,
+    "url": "https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42701859712",
+    "conclusion": "success",
+    "attempt": 2,
+    "createdAt": "2026-11-09T21:22:18Z",
+    "completedAt": "2026-11-09T22:07:24Z"
+  },
+  "jobs": [
+    {
+      "id": 129462968788,
+      "name": "Desktop / x86_64-pc-windows-msvc",
+      "conclusion": "success",
+      "validationSteps": [
+        {
+          "name": "Linux native prerequisites",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check Rust target architecture",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --features dev-auth --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production feature guard",
+          "conclusion": "success"
+        },
+        {
+          "name": "Release IPC restrictions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Official Minecraft and Java install smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Pinned Authlib Injector download and integrity smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload installer smoke receipts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Package desktop application",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 129462971076,
+      "name": "Frontend quality",
+      "conclusion": "success",
+      "validationSteps": [
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm audit --audit-level=moderate",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 129463040337,
+      "name": "Desktop / x86_64-apple-darwin",
+      "conclusion": "success",
+      "validationSteps": [
+        {
+          "name": "Linux native prerequisites",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check Rust target architecture",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --features dev-auth --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production feature guard",
+          "conclusion": "success"
+        },
+        {
+          "name": "Release IPC restrictions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Official Minecraft and Java install smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Pinned Authlib Injector download and integrity smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload installer smoke receipts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Package desktop application",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 129463058846,
+      "name": "Desktop / x86_64-unknown-linux-gnu",
+      "conclusion": "success",
+      "validationSteps": [
+        {
+          "name": "Linux native prerequisites",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check Rust target architecture",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --features dev-auth --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production feature guard",
+          "conclusion": "success"
+        },
+        {
+          "name": "Release IPC restrictions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Official Minecraft and Java install smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Pinned Authlib Injector download and integrity smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload installer smoke receipts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Package desktop application",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 129463059312,
+      "name": "Desktop / aarch64-apple-darwin",
+      "conclusion": "success",
+      "validationSteps": [
+        {
+          "name": "Linux native prerequisites",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Install pinned Rust toolchain",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check Rust target architecture",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm ci --ignore-scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run npm run build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo fmt --all -- --check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo clippy --workspace --all-targets --locked -- -D warnings",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run cargo test --workspace --features dev-auth --locked",
+          "conclusion": "success"
+        },
+        {
+          "name": "Production feature guard",
+          "conclusion": "success"
+        },
+        {
+          "name": "Release IPC restrictions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Official Minecraft and Java install smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Pinned Authlib Injector download and integrity smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload installer smoke receipts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Package desktop application",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload internal build artifacts",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13714766402,
+      "name": "installer-smoke-x86_64-pc-windows-msvc",
+      "bytes": 7928,
+      "digest": "sha256:2b78f8d53c3d54bde2c3b8a820dfcda82b5e1add3977504c8209236603a12353",
+      "expiresAt": "2026-11-23T22:04:22Z"
+    },
+    {
+      "id": 13714368259,
+      "name": "launcher-installer-x86_64-pc-windows-msvc",
+      "bytes": 9192373,
+      "digest": "sha256:8643f8bc123886efc936786a271a58f1b1def01656e0dcd1dc1b039f6117bead",
+      "expiresAt": "2026-11-23T22:07:16Z"
+    },
+    {
+      "id": 13713666854,
+      "name": "installer-smoke-x86_64-apple-darwin",
+      "bytes": 7630,
+      "digest": "sha256:d3133f3453dc1f7eec7a0a39697c8cda2fcc0d380934888f2c765d665c7dfa21",
+      "expiresAt": "2026-11-23T21:42:57Z"
+    },
+    {
+      "id": 13713635082,
+      "name": "installer-smoke-x86_64-unknown-linux-gnu",
+      "bytes": 7066,
+      "digest": "sha256:664aa08651c9287d3b4513cbd320b74aedab61748cf85e565c37fd8260628023",
+      "expiresAt": "2026-11-23T21:33:06Z"
+    },
+    {
+      "id": 13713416059,
+      "name": "launcher-installer-aarch64-apple-darwin",
+      "bytes": 5237669,
+      "digest": "sha256:0ae6d9aee57317150d4e7dd67e8169b5e8a70553a1d82a19cf681ca74f802781",
+      "expiresAt": "2026-11-23T21:36:02Z"
+    },
+    {
+      "id": 13713206139,
+      "name": "launcher-installer-x86_64-unknown-linux-gnu",
+      "bytes": 6811395,
+      "digest": "sha256:fa18b8eeaae0bd9a6f90f7e0b737b85adbe9ac069786868449e73ad6657c6da1",
+      "expiresAt": "2026-11-23T21:34:32Z"
+    },
+    {
+      "id": 13713050819,
+      "name": "installer-smoke-aarch64-apple-darwin",
+      "bytes": 7570,
+      "digest": "sha256:e6310e9d0afc34a333dbf8e42cb23b768d11b9f31797aa86043c4a8483c26657",
+      "expiresAt": "2026-11-23T21:33:00Z"
+    },
+    {
+      "id": 13712169987,
+      "name": "launcher-installer-x86_64-apple-darwin",
+      "bytes": 5692020,
+      "digest": "sha256:de58921709cf04d5b9a3b358485c067f9880c9555abcb84953f10e87692d0c04",
+      "expiresAt": "2026-11-23T21:46:42Z"
+    }
+  ],
+  "previousAttempts": [
+    {
+      "runId": 42700765503,
+      "platform": "Linux x64",
+      "failure": "storage test future_root_marker_and_selection_are_preserved; actual error was not captured; final source explicitly unlocks leases and adds a duplicated-descriptor regression test"
+    },
+    {
+      "runId": 42701859712,
+      "attempt": 1,
+      "platform": "Windows x64",
+      "jobId": 129448537619,
+      "failure": "installer loopback fixture observed one additional retry; only the failed Windows job was rerun against the same commit and passed"
+    }
+  ],
+  "limitations": [
+    "CI validates build, installer/reuse, loader, agent integrity and process fixtures, without launching the graphical game or signing in to Ely.by.",
+    "Artifacts are internal builds; production signing and notarization are release work."
+  ]
+}

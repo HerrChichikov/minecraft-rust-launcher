@@ -1,0 +1,70 @@
+{
+  "date": "2026-11-10",
+  "sourceCommit": "33b5362f811dbc0556e4dd866339129cf1be93af",
+  "platform": "macOS ARM64",
+  "checks": {
+    "frontendTests": 43,
+    "coreDefaultTests": 53,
+    "coreDevAuthTests": 55,
+    "desktopDebugTests": 13,
+    "formatClippy": "pass, default and dev-auth",
+    "redactionRegression": "pass, including a token split by a control character",
+    "unixLeaseRegression": "pass; explicit unlock releases the lock even with a duplicated descriptor",
+    "desktopReleaseIpcTests": 13,
+    "productionFeatureGuards": "pass for core and desktop"
+  },
+  "graphicalSmokes": {
+    "desktopButton": {
+      "auth": "development-mock",
+      "javaChildVerified": true,
+      "renderInitialized": true,
+      "soundInitialized": true,
+      "externalStopExitCode": 143,
+      "streams": [
+        "stdout",
+        "stderr"
+      ],
+      "scratchReleased": true,
+      "uiAfterExit": "native accessibility timed out",
+      "sourceCommit": "203835c998130f58aa6628c17b68dfdf837e9be6"
+    },
+    "coreDevelopment": {
+      "version": "1.21.1",
+      "renderInitialized": true,
+      "soundInitialized": true,
+      "stoppedBySupervisor": true,
+      "logSaved": true,
+      "recoveryMarkerCleared": true,
+      "sourceCommit": "203835c998130f58aa6628c17b68dfdf837e9be6"
+    },
+    "coreWithPinnedAgent": {
+      "agentVersion": "1.2.8",
+      "agentSha256": "9c7f4343e6c82034958ffb48c14a2cb0c85928be7283103ce17da00c6d5a7b10",
+      "elyEndpointInitialized": true,
+      "renderInitialized": true,
+      "soundInitialized": true,
+      "identity": "synthetic fixture; no actual account",
+      "stoppedBySupervisor": true,
+      "logSaved": true,
+      "recoveryMarkerCleared": true,
+      "sourceCommit": "33b5362f811dbc0556e4dd866339129cf1be93af"
+    }
+  },
+  "package": {
+    "path": "target/release/bundle/dmg/Launcher_0.1.0_aarch64.dmg",
+    "bytes": 5265287,
+    "sha256": "a8f1229d7d6f776aaafe4e03e735908eeb2c7e1bcd2e4a07107002d9edbe2156",
+    "signing": "ad-hoc; codesign --verify --deep --strict passed; not notarized"
+  },
+  "limitations": [
+    "Normal menu exit and real Ely.by server join were not observed.",
+    "No Windows, Linux, or Intel macOS graphical smoke."
+  ],
+  "previousCi": {
+    "runId": 42700765503,
+    "jobId": 129444805611,
+    "failedTest": "future_root_marker_and_selection_are_preserved",
+    "note": "New launcher tests passed. The earlier assertion did not log the actual error. Explicit release of duplicated-descriptor locks was verified by a new regression test."
+  },
+  "originalConfigFingerprintsMatchingPriorBaseline": 4
+}
