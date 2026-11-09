@@ -5,6 +5,9 @@
   "windows": ["main"],
   "permissions": [
     "allow-get-snapshot",
+    "allow-get-game",
+    "allow-start-game",
+    "allow-stop-game",
     "allow-get-auth",
     "allow-login",
     "allow-logout",

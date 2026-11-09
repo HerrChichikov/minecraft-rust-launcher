@@ -14,6 +14,10 @@ pub struct ApiError {
 }
 
 impl ApiError {
+    pub(super) fn code(&self) -> &'static str {
+        self.code
+    }
+
     fn storage(code: &'static str, retryable: bool) -> Self {
         Self {
             code,
@@ -86,6 +90,17 @@ impl From<LauncherError> for ApiError {
                 Self::storage("unsafe_path", false)
             }
             LauncherError::InvalidInput { .. } => Self::storage("invalid_settings", false),
+            LauncherError::InvalidLaunchArguments => {
+                Self::storage("invalid_launch_arguments", false)
+            }
+            LauncherError::GameBusy => Self::storage("game_busy", true),
+            LauncherError::GameRecoveryRequired => Self::storage("game_recovery_required", false),
+            LauncherError::GameSpawn => Self::storage("game_spawn", true),
+            LauncherError::GameMonitor => Self::storage("game_monitor", true),
+            LauncherError::Network => Self::storage("network", true),
+            LauncherError::Integrity => Self::storage("integrity", true),
+            LauncherError::Metadata => Self::storage("metadata", false),
+            LauncherError::RuntimeIncompatible => Self::storage("runtime", false),
             LauncherError::Durability(_) => Self::storage("durability_failed", true),
             LauncherError::Storage(_) => Self::storage("storage_failed", true),
             LauncherError::UnsupportedPlatform => Self {

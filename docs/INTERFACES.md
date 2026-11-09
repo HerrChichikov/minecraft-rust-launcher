@@ -84,3 +84,10 @@ AuthProvider — bounded sync contract (как InstallEngine), вызываем�
 Auth errors: auth_unavailable, auth_rejected, auth_network, auth_protocol, auth_challenge_expired, auth_busy, authentication_required, unsupported_auth_flow; existing invalid_settings/revision_conflict остаются sanitized. Ошибка remote invalidate не отменяет local logout — отдельный notice.
 
 CredentialStore.read/write/delete внедряется в AuthService; desktop native implementation — keyring 4.2 v1 на одном последовательном worker thread. Ни reference, ни serialized secret record не поступают в IPC. Restore выполняет validate+refresh до account summary; refresh/store failure не теряет новую in-memory session и сообщает memory fallback.
+
+
+## Phase 5
+
+`PreparedLaunch::prepare` использует `InstallEngine` под блокировкой профиля. `PreparedLaunch::spawn` принимает свежий `LaunchIdentity` и возвращает владельца процесса `GameProcess`. `GameProcess::wait` возвращает `CompletedGame` с кодом выхода, статусом остановки и результатом записи журнала. Аргументы процесса, сырой вывод и токены остаются вне IPC.
+
+Main-only команды `get_game`, `start_game({ rootId, profileId, profileRevision })`, `stop_game({ runId })`. Аргументы команд обёрнуты в `request`, поля пути, PID и credentials не принимаются. Событие `launcher://game` и snapshot используют общую схему с runId, sequence, профилем, состоянием и безопасным кодом ошибки.

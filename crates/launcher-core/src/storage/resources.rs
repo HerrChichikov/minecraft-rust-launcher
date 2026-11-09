@@ -48,6 +48,53 @@ impl WorkspaceService {
     }
 }
 impl ResourceStore {
+    pub(crate) fn create_run_directory(&self, path: &str) -> Result<()> {
+        let (dir, name) = self.parent(path, false)?;
+        dir.create_dir(&name)?;
+        Ok(())
+    }
+
+    pub(crate) fn remove_run_directory(&self, path: &str) -> Result<()> {
+        let (dir, name) = self.parent(path, false)?;
+        dir.remove_dir_all(&name)?;
+        Ok(())
+    }
+
+    pub(crate) fn run_marker_exists(&self, path: &str) -> Result<bool> {
+        let (dir, name) = self.parent(path, false)?;
+        fs::regular(&dir, &name)
+    }
+
+    pub(crate) fn remove_run_marker(&self, path: &str) -> Result<()> {
+        let (dir, name) = self.parent(path, false)?;
+        if fs::regular(&dir, &name)? {
+            dir.remove_file(&name)?;
+            fs::sync(&dir)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn install_builtin(
+        &self,
+        name: &str,
+        bytes: &[u8],
+        cancel: &Cancellation,
+    ) -> Result<std::path::PathBuf> {
+        let sha1 = format!("{:x}", Sha1::digest(bytes));
+        let resource = Resource::new(
+            format!("shared/metadata/launcher/{sha1}/{name}"),
+            crate::installer::metadata::Download {
+                url: String::new(), // This artifact comes from the compiled application.
+                sha1,
+                size: bytes.len() as u64,
+            },
+        )?;
+        if !self.valid(&resource, cancel)? {
+            self.publish(&resource, bytes, cancel, |_| {})?;
+        }
+        self.path(&resource.path)
+    }
+
     pub(crate) fn bounded_bytes(&self, path: &str, limit: u64) -> Result<Option<Vec<u8>>> {
         let (dir, name) = self.parent(path, true)?;
         if !fs::regular(&dir, &name)? {

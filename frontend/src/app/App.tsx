@@ -1,3 +1,4 @@
+import { GamePanel } from '../features/game/GamePanel';
 import { InstallationPanel } from '../features/profiles/InstallationPanel';
 import { ProfilesPanel } from '../features/profiles/ProfilesPanel';
 import { FoundationStatus } from '../features/foundation/FoundationStatus';
@@ -34,7 +35,7 @@ export function App() {
 
         <div className="sidebar-footer">
           <span className="small-label">Этап разработки</span>
-          <strong>04 / Авторизация</strong>
+          <strong>05 / Запуск игры</strong>
           <p>Java Edition</p>
         </div>
       </aside>
@@ -45,28 +46,18 @@ export function App() {
             <p className="eyebrow">Minecraft Java Edition</p>
             <h1>Ваше пространство для игры</h1>
           </div>
-          <span className="phase-badge">Authentication</span>
+          <span className="phase-badge">Launch Engine</span>
         </header>
 
         <section className="welcome-card" aria-labelledby="welcome-title">
           <div className="welcome-copy">
-            <span className="release-label">Четвёртый этап</span>
+            <span className="release-label">Пятый этап</span>
             <h2 id="welcome-title">Начало нового мира.</h2>
             <p>
               Устанавливайте Minecraft, проверяйте файлы и сохраняйте настройки профилей. Выбирайте
-              доступный способ входа. Запуск появится на следующем этапе.
+              доступный способ входа и запускайте Minecraft для активного профиля.
             </p>
-            <div className="play-area">
-              <button
-                className="button button--primary"
-                type="button"
-                disabled
-                aria-describedby="play-help"
-              >
-                <span aria-hidden="true">▶</span> Играть
-              </button>
-              <p id="play-help">Запуск игры ещё не реализован</p>
-            </div>
+            <GamePanel available={state.status === 'ready' && state.snapshot.features.gameLaunch} />
           </div>
           <div className="world-art" aria-hidden="true">
             <span className="world-line world-line--one" />
@@ -94,13 +85,11 @@ export function App() {
           <FoundationStatus state={state} retry={retry} />
           <section className="next-card" aria-labelledby="next-title">
             <p className="eyebrow">Дальше по плану</p>
-            <h2 id="next-title">Запуск Minecraft</h2>
-            <p className="muted">
-              Подготовка параметров Java, запуск игры и отслеживание её состояния.
-            </p>
+            <h2 id="next-title">Интерфейс лаунчера</h2>
+            <p className="muted">Улучшение экранов входа, настроек, установки и статуса игры.</p>
             <div className="next-step">
-              <span>05</span>
-              <strong>Launch Engine</strong>
+              <span>06</span>
+              <strong>UI/UX</strong>
             </div>
           </section>
         </div>

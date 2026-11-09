@@ -1,5 +1,5 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -13,13 +13,17 @@ vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }));
 describe('foundation desktop screen', () => {
   beforeEach(() => vi.mocked(isTauri).mockReturnValue(true));
 
-  it('renders a real loading state and keeps game launch unavailable', async () => {
+  it('enables game launch after connecting to the desktop backend', async () => {
     let resolve: ((value: unknown) => void) | undefined;
-    vi.mocked(invoke).mockReturnValue(
-      new Promise((done) => {
-        resolve = done;
-      }),
-    );
+    const snapshot = new Promise((done) => {
+      resolve = done;
+    });
+    vi.mocked(invoke).mockImplementation(async (command) => {
+      if (command === 'get_snapshot') return snapshot;
+      if (command === 'get_workspace') return workspaceFixture;
+      if (command === 'get_auth') return authContract;
+      return null;
+    });
     render(<App />);
     expect(screen.getByRole('status')).toHaveTextContent('Подключение к ядру');
     expect(screen.getByRole('button', { name: /Играть/ })).toBeDisabled();
@@ -27,7 +31,7 @@ describe('foundation desktop screen', () => {
     resolve?.(foundationSnapshot);
     expect(await screen.findByText('Ядро подключено')).toBeInTheDocument();
     expect(screen.getByText('macOS · ARM64')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Играть/ })).toBeDisabled();
+    await waitFor(() => expect(screen.getByRole('button', { name: /Играть/ })).toBeEnabled());
   });
 
   it('recovers from a backend failure on explicit retry', async () => {
@@ -36,6 +40,7 @@ describe('foundation desktop screen', () => {
       .mockResolvedValueOnce(foundationSnapshot)
       .mockResolvedValueOnce(authContract)
       .mockResolvedValueOnce(workspaceFixture)
+      .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null);
     render(<App />);
     expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось подключиться');
@@ -43,7 +48,7 @@ describe('foundation desktop screen', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Повторить подключение' }));
     expect(await screen.findByText('Ядро подключено')).toBeInTheDocument();
-    expect(invoke).toHaveBeenCalledTimes(5);
+    expect(invoke).toHaveBeenCalledTimes(6);
   });
 
   it('shows a clear browser-only state without a fake core', async () => {

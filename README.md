@@ -2,7 +2,7 @@
 
 Основа desktop-лаунчера Minecraft Java Edition на Tauri 2, Rust и React / TypeScript / SCSS / Vite.
 
-**Phase 4: Authentication завершена.** Реализованы Ely.by password/TOTP, refresh/validate/logout, development mock (только debug + `dev-auth`), backend-сессия в памяти и capability-based UI. Успешный реальный вход Ely.by подтверждён пользователем; все четыре native CI targets пройдены; по явному выбору токены сохраняются в системном защищённом хранилище; доступны восстановление и удаление сохранённой сессии. Установщик и профили сохранены; запуск игры — Phase 5, «Играть» отключена. Результаты — [Phase 4 review](docs/PHASE_4_REVIEW.md).
+**Phase 5: Launch Engine.** Кнопка «Играть» проверяет установку и запускает Minecraft 1.21.1 с настройками активного профиля. Launcher показывает состояние и код выхода. Реальный запуск с тестовым входом проверен на macOS ARM64. [Результаты Phase 5](docs/PHASE_5_REVIEW.md).
 
 ## Запуск разработки
 
@@ -46,7 +46,7 @@ npm run tauri -- build --ci -- --locked
 
 ## Результаты и документация
 
-Начните с [отчёта Phase 4](docs/PHASE_4_REVIEW.md). [Phase 3](docs/PHASE_3_REVIEW.md) — установщик Minecraft/Java. [Phase 2](docs/PHASE_2_REVIEW.md) — завершённое хранилище и профили. [Phase 1](docs/PHASE_1_REVIEW.md) содержит исторические результаты foundation. [Phase 0](docs/PHASE_0_REVIEW.md) — историческое исследование, согласованное пользователем.
+Начните с [отчёта Phase 5](docs/PHASE_5_REVIEW.md). [Phase 4](docs/PHASE_4_REVIEW.md) — Ely.by, развитие тестового входа и защищённое хранение токенов. [Phase 3](docs/PHASE_3_REVIEW.md) — установщик Minecraft/Java. [Phase 2](docs/PHASE_2_REVIEW.md) — завершённое хранилище и профили. [Phase 1](docs/PHASE_1_REVIEW.md) содержит исторические результаты foundation. [Phase 0](docs/PHASE_0_REVIEW.md) — историческое исследование, согласованное пользователем.
 
 | Документ                                   | Содержание                                   |
 | ------------------------------------------ | -------------------------------------------- |
@@ -65,4 +65,4 @@ npm run tauri -- build --ci -- --locked
 
 Исследовательские снимки проверяются offline: `python3 docs/research/verify_snapshot.py`. Эта проверка не заменяет application tests.
 
-Phase 5 не начинается автоматически. Перед production-выпуском нужны real session/game/server smoke на всех платформах и согласованная подпись/распространение.
+Phase 6 начинается после согласования. Перед production-выпуском нужны real session/game/server smoke на всех платформах и согласованная подпись/распространение.

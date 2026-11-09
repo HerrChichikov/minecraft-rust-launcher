@@ -254,7 +254,7 @@ fn probe(
         use tokio::io::AsyncReadExt;
         let mut command=tokio::process::Command::new(&path);
         command.args(["-XshowSettings:properties","-version"]).kill_on_drop(true).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
-        for name in ["JAVA_TOOL_OPTIONS","_JAVA_OPTIONS","JDK_JAVA_OPTIONS","CLASSPATH","LD_PRELOAD","LD_LIBRARY_PATH","DYLD_INSERT_LIBRARIES","DYLD_LIBRARY_PATH","DYLD_FRAMEWORK_PATH"] {command.env_remove(name);}
+        for name in crate::runtime::JAVA_ENV_OVERRIDES {command.env_remove(name);}
         let mut child=command.spawn().map_err(|_|Error::RuntimeIncompatible)?;
         let stdout=child.stdout.take().ok_or(Error::RuntimeIncompatible)?;let stderr=child.stderr.take().ok_or(Error::RuntimeIncompatible)?;
         async fn read(reader:impl tokio::io::AsyncRead+Unpin)->std::io::Result<Vec<u8>> {

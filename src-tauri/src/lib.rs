@@ -19,6 +19,7 @@ fn configure_with_storage<R: Runtime>(
         .manage(storage)
         .manage(commands::installation::InstallationState::default())
         .manage(commands::auth::AuthState::default())
+        .manage(commands::game::GameState::default())
         .invoke_handler(tauri::generate_handler![
             commands::snapshot::get_snapshot,
             commands::workspace::get_workspace,
@@ -35,12 +36,34 @@ fn configure_with_storage<R: Runtime>(
             commands::auth::continue_login,
             commands::auth::cancel_login,
             commands::auth::refresh_auth,
-            commands::auth::restore_auth
+            commands::auth::restore_auth,
+            commands::game::get_game,
+            commands::game::start_game,
+            commands::game::stop_game
         ])
 }
 
 pub fn run() -> tauri::Result<()> {
-    configure(tauri::Builder::default()).run(context())
+    use tauri::Manager;
+    configure(tauri::Builder::default())
+        .build(context())?
+        .run(|app, event| {
+            let game = app.state::<commands::game::GameState>();
+            match event {
+                tauri::RunEvent::ExitRequested { api, .. } => {
+                    if !game.can_exit() {
+                        api.prevent_exit();
+                    }
+                }
+                tauri::RunEvent::WindowEvent {
+                    label,
+                    event: tauri::WindowEvent::CloseRequested { api, .. },
+                    ..
+                } if label == "main" && game.active() => api.prevent_close(),
+                _ => {}
+            }
+        });
+    Ok(())
 }
 
 fn context<R: Runtime>() -> tauri::Context<R> {

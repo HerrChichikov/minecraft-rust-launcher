@@ -57,6 +57,16 @@ pub enum LauncherError {
     CredentialStoreUnavailable,
     #[error("no saved authentication session exists")]
     SavedSessionMissing,
+    #[error("invalid game launch arguments")]
+    InvalidLaunchArguments,
+    #[error("Java could not be started")]
+    GameSpawn,
+    #[error("the game process could not be monitored")]
+    GameMonitor,
+    #[error("another game launch is active")]
+    GameBusy,
+    #[error("a previous game process may still be running")]
+    GameRecoveryRequired,
     #[error("filesystem operation failed")]
     Storage(#[source] std::io::Error),
 }

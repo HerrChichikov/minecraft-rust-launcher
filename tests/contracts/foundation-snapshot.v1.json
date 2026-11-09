@@ -12,6 +12,6 @@
     "profiles": true,
     "installation": true,
     "authentication": true,
-    "gameLaunch": false
+    "gameLaunch": true
   }
 }

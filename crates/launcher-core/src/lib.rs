@@ -1,5 +1,4 @@
-//! Desktop-independent launcher foundation. Service traits describe subsequent phases;
-//! no installer, authentication provider, or game process is implemented yet.
+//! Desktop-independent storage, installation, authentication and launch services.
 
 #[cfg(all(feature = "dev-auth", not(debug_assertions)))]
 compile_error!("LAUNCHER_DEV_AUTH_FORBIDDEN: dev-auth cannot be compiled without debug assertions");

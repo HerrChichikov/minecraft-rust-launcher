@@ -36,7 +36,7 @@ impl ApplicationService {
                 profiles: true,
                 installation: true,
                 authentication: true,
-                game_launch: false,
+                game_launch: true,
             },
         })
     }

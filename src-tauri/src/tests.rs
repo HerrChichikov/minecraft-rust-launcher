@@ -58,7 +58,7 @@ fn main_window_can_read_the_real_application_snapshot() -> Result<(), Box<dyn st
         .map_err(|value| value.to_string())?;
     let snapshot: serde_json::Value = response.deserialize()?;
     assert_eq!(snapshot["phase"], "foundation");
-    assert_eq!(snapshot["features"]["gameLaunch"], false);
+    assert_eq!(snapshot["features"]["gameLaunch"], true);
     assert_eq!(snapshot["developmentBuild"], cfg!(debug_assertions));
     Ok(())
 }
@@ -77,7 +77,8 @@ fn other_windows_and_remote_origins_cannot_read_application_state()
 }
 
 #[test]
-fn auth_launch_and_filesystem_commands_are_unavailable() -> Result<(), Box<dyn std::error::Error>> {
+fn arbitrary_launch_and_filesystem_commands_are_unavailable()
+-> Result<(), Box<dyn std::error::Error>> {
     let app = app()?;
     let main = tauri::WebviewWindowBuilder::new(&app.app, "main", Default::default()).build()?;
     for command in [
@@ -101,6 +102,46 @@ fn call(
     Ok(get_ipc_response(main, req)
         .map_err(|value| value.to_string())?
         .deserialize()?)
+}
+
+#[test]
+fn game_ipc_checks_origin_authentication_and_payload_before_starting()
+-> Result<(), Box<dyn std::error::Error>> {
+    let app = app()?;
+    let main = tauri::WebviewWindowBuilder::new(&app.app, "main", Default::default()).build()?;
+    let secondary =
+        tauri::WebviewWindowBuilder::new(&app.app, "untrusted", Default::default()).build()?;
+    for command in ["get_game", "start_game", "stop_game"] {
+        assert!(get_ipc_response(&secondary, request(command, bundled_origin())?).is_err());
+        assert!(get_ipc_response(&main, request(command, "https://example.com")?).is_err());
+    }
+    assert!(call(&main, "get_game", serde_json::json!({}))?.is_null());
+    let mut payload = serde_json::json!({"request": {
+        "rootId":"aa000000-0000-4000-8000-000000000000",
+        "profileId":"bb000000-0000-4000-8000-000000000000",
+        "profileRevision":1
+    }});
+    let error = call(&main, "start_game", payload.clone())
+        .err()
+        .ok_or("launch should fail")?;
+    assert!(error.to_string().contains("authentication_required"));
+    assert!(!app._temp.path().join("data").exists());
+    payload["request"]["accessToken"] = "untrusted".into();
+    let error = call(&main, "start_game", payload)
+        .err()
+        .ok_or("forged launch should fail")?;
+    assert!(error.to_string().contains("unknown field"));
+    assert!(
+        call(
+            &main,
+            "stop_game",
+            serde_json::json!({"request": {
+                "runId":"cc000000-0000-4000-8000-000000000000"
+            }})
+        )
+        .is_err()
+    );
+    Ok(())
 }
 
 #[test]

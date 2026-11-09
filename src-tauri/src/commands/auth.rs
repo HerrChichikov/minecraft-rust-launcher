@@ -1,6 +1,6 @@
 use super::snapshot::ApiError;
 use launcher_core::{
-    auth::{AuthService, AuthSnapshot, SecretString},
+    auth::{AuthService, AuthSnapshot, LaunchIdentity, SecretString},
     core::LauncherError,
 };
 use serde::Deserialize;
@@ -8,6 +8,31 @@ use std::sync::Mutex;
 use tauri::{AppHandle, Manager, Runtime, State};
 #[derive(Debug)]
 pub(crate) struct AuthState(Mutex<AuthService>);
+impl AuthState {
+    pub(crate) fn launch_session(&self) -> launcher_core::core::Result<(u32, bool)> {
+        let snapshot = self
+            .0
+            .try_lock()
+            .map_err(|_| LauncherError::AuthBusy)?
+            .snapshot();
+        let account = snapshot
+            .account
+            .ok_or(LauncherError::AuthenticationRequired)?;
+        Ok((snapshot.revision, account.provider_id == "ely-by"))
+    }
+
+    pub(crate) fn with_launch_identity<T>(
+        &self,
+        revision: u32,
+        launch: impl FnOnce(LaunchIdentity) -> launcher_core::core::Result<T>,
+    ) -> launcher_core::core::Result<T> {
+        let mut service = self.0.try_lock().map_err(|_| LauncherError::AuthBusy)?;
+        if service.snapshot().revision != revision {
+            return Err(LauncherError::RevisionConflict);
+        }
+        launch(service.launch_identity()?)
+    }
+}
 impl Default for AuthState {
     fn default() -> Self {
         #[cfg(test)]

@@ -11,3 +11,6 @@
 Последствия: game token остаётся в argv согласно upstream protocol; локальную видимость полностью скрыть нельзя. Controlled sinks проходят redaction. При window close во время игры по умолчанию launcher остаётся открыт. Force stop не называется гарантированным graceful save. После crash нужен conservative run reconciliation.
 
 Проверка: argv golden для четырёх ОС/arch, subprocess flood/exit/spawn-failure tests, reconnect race и double Play. Tauri app command permissions заданы явно; event payload не содержит credentials.
+
+
+Уточнение Phase 5. В первой реализации Launcher запрещает закрытие окна во время игры и предоставляет отдельное принудительное завершение принадлежащего процесса. После падения Launcher запуск блокирует сохранённая запись до ручного подтверждения завершения прежнего процесса. Один ограниченный журнал stdout/stderr сохраняется при подтверждённом выходе. [Описание и восстановление](../LAUNCH_PROCESS.md).

@@ -75,6 +75,9 @@ impl InstallEngine {
     pub fn cancellation(&self) -> Cancellation {
         self.cancel.clone()
     }
+    pub(crate) fn resource_store(&self) -> Arc<ResourceStore> {
+        Arc::clone(&self.store)
+    }
     pub fn operation_id(&self) -> OperationId {
         self.operation
     }
