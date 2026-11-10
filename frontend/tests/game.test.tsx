@@ -4,10 +4,25 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { expect, it, vi } from 'vitest';
 import { GamePanel } from '../src/features/game/GamePanel';
+import { useGame } from '../src/features/game/useGame';
 import { workspaceFixture } from './fixtures';
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }));
 vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn() }));
+
+function GameHarness() {
+  const model = useGame();
+  return (
+    <GamePanel
+      available
+      model={model}
+      workspace={workspaceFixture}
+      installActive={false}
+      signedIn
+      onSignIn={() => {}}
+    />
+  );
+}
 
 it('starts the selected profile and preserves the latest event across late replies', async () => {
   const profile = workspaceFixture.profiles[0];
@@ -16,6 +31,9 @@ it('starts the selected profile and preserves the latest event across late repli
     schemaVersion: 1,
     runId: '6b000000-0000-4000-8000-000000000000',
     profileName: profile.name,
+    profileId: profile.id,
+    rootId: workspaceFixture.rootId,
+    preparation: null,
     stage: 'preparing',
     sequence: 1,
     exit: null,
@@ -36,14 +54,14 @@ it('starts the selected profile and preserves the latest event across late repli
         reply = resolve;
       });
     if (command === 'stop_game')
-      return Promise.resolve({ ...base, sequence: 3, stage: 'stopping' });
+      return Promise.resolve({ ...base, sequence: 4, stage: 'stopping' });
     return Promise.resolve(null);
   });
   function emit(payload: unknown) {
     act(() => event?.({ event: 'launcher://game', id: 1, payload }));
   }
 
-  render(<GamePanel available />);
+  render(<GameHarness />);
   const play = screen.getByRole('button', { name: /Играть/ });
   await waitFor(() => expect(play).toBeEnabled());
   await userEvent.click(play);
@@ -54,18 +72,33 @@ it('starts the selected profile and preserves the latest event across late repli
       profileRevision: profile.revision,
     },
   });
-  emit({ ...base, stage: 'running', sequence: 2 });
+  emit({
+    ...base,
+    sequence: 2,
+    preparation: {
+      stage: 'repairing',
+      completedBytes: 2,
+      totalBytes: 4,
+      downloadedBytes: 5,
+      elapsedMs: 750,
+    },
+  });
+  expect(screen.getByText('Восстанавливаем файлы')).toBeInTheDocument();
+  expect(screen.getByRole('progressbar')).toHaveValue(2);
+  emit({ ...base, stage: 'running', sequence: 3 });
   await act(() => {
     reply?.(base);
     return Promise.resolve();
   });
   expect(screen.getByText(/Minecraft запущен/)).toBeInTheDocument();
   expect(play).toBeDisabled();
+  await userEvent.click(screen.getByRole('button', { name: 'Остановить игру' }));
+  expect(invoke).not.toHaveBeenCalledWith('stop_game', expect.anything());
   await userEvent.click(screen.getByRole('button', { name: 'Принудительно остановить' }));
   expect(invoke).toHaveBeenCalledWith('stop_game', { request: { runId: base.runId } });
   emit({
     ...base,
-    sequence: 4,
+    sequence: 5,
     stage: 'finished',
     exit: { code: null, success: false, stopped: true },
     logSaved: true,

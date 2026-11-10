@@ -19,7 +19,7 @@
         "height": 760,
         "minWidth": 800,
         "minHeight": 600,
-        "backgroundColor": "#101714"
+        "backgroundColor": "#101019"
       }
     ],
     "security": {
@@ -31,7 +31,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "shortDescription": "Minecraft Java Edition launcher foundation",
+    "shortDescription": "Minecraft Java Edition Launcher",
     "category": "Game",
     "icon": [
       "icons/32x32.png",

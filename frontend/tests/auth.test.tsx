@@ -3,6 +3,7 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthPanel } from '../src/features/auth/AuthPanel';
+import { useAuth } from '../src/features/auth/useAuth';
 import { getAuth, parseAuth } from '../src/features/auth/client';
 import contract from '../../tests/contracts/auth.v1.json';
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: () => true }));
@@ -30,13 +31,17 @@ const authenticated = parseAuth({
     development: true,
   },
 });
+function AuthHarness() {
+  const model = useAuth();
+  return <AuthPanel model={model} />;
+}
 describe('authentication UI and protocol', () => {
   beforeEach(() => {
     vi.mocked(invoke).mockReset();
   });
   it('does not manufacture production login or offer mock without backend capability', async () => {
     vi.mocked(invoke).mockResolvedValue(production);
-    render(<AuthPanel />);
+    render(<AuthHarness />);
     expect(await screen.findByLabelText('Пароль Ely.by')).toBeInTheDocument();
     expect(screen.queryByLabelText('Тестовый ник')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Выйти' })).not.toBeInTheDocument();
@@ -47,8 +52,9 @@ describe('authentication UI and protocol', () => {
       .mockResolvedValueOnce(authenticated)
       .mockResolvedValueOnce(authenticated)
       .mockResolvedValueOnce({ ...production, providers: development.providers, revision: 2 });
-    const view = render(<AuthPanel />);
-    const input = await screen.findByLabelText('Тестовый ник');
+    const view = render(<AuthHarness />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Тестовый вход' }));
+    const input = screen.getByLabelText('Тестовый ник');
     await userEvent.type(input, 'Notch');
     await userEvent.click(screen.getByRole('button', { name: 'Войти в Development / Mock' }));
     expect(await screen.findByText('Notch')).toBeInTheDocument();
@@ -61,10 +67,10 @@ describe('authentication UI and protocol', () => {
       },
     });
     view.unmount();
-    render(<AuthPanel />);
+    render(<AuthHarness />);
     expect(await screen.findByText('Notch')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Выйти' }));
-    expect(await screen.findByLabelText('Тестовый ник')).toBeInTheDocument();
+    expect(await screen.findByLabelText('Пароль Ely.by')).toBeInTheDocument();
     expect(invoke).toHaveBeenCalledWith('logout', { request: { expectedRevision: 1 } });
   });
   it('shows pending without false success and sanitizes rejection', async () => {
@@ -76,8 +82,9 @@ describe('authentication UI and protocol', () => {
           reject = fail;
         }),
       );
-    render(<AuthPanel />);
-    await userEvent.type(await screen.findByLabelText('Тестовый ник'), 'Notch');
+    render(<AuthHarness />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Тестовый вход' }));
+    await userEvent.type(screen.getByLabelText('Тестовый ник'), 'Notch');
     await userEvent.click(screen.getByRole('button', { name: 'Войти в Development / Mock' }));
     expect(screen.getByRole('button', { name: 'Войти в Development / Mock' })).toBeDisabled();
     expect(screen.queryByText(/Выполнен тестовый вход/)).not.toBeInTheDocument();
@@ -119,7 +126,7 @@ describe('authentication UI and protocol', () => {
         }),
       )
       .mockResolvedValueOnce(authenticated);
-    render(<AuthPanel />);
+    render(<AuthHarness />);
     await userEvent.click(screen.getByRole('button', { name: 'Обновить состояние входа' }));
     expect(await screen.findByText('Notch')).toBeInTheDocument();
     await act(async () => {
@@ -135,7 +142,7 @@ describe('authentication UI and protocol', () => {
   });
   it('lets the user recover a failed initial snapshot', async () => {
     vi.mocked(invoke).mockRejectedValueOnce('private').mockResolvedValueOnce(production);
-    render(<AuthPanel />);
+    render(<AuthHarness />);
     await screen.findByRole('alert');
     await userEvent.click(screen.getByRole('button', { name: 'Обновить состояние входа' }));
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
@@ -172,7 +179,7 @@ describe('Ely.by password and TOTP', () => {
       .mockResolvedValueOnce(challenge)
       .mockResolvedValueOnce(realAccount)
       .mockResolvedValueOnce({ ...production, revision: 3, notice: 'remote_logout_failed' });
-    render(<AuthPanel />);
+    render(<AuthHarness />);
     await userEvent.type(
       await screen.findByLabelText('Логин или email Ely.by'),
       'fixture@example.test',
@@ -199,7 +206,7 @@ describe('Ely.by password and TOTP', () => {
       .mockResolvedValueOnce(production)
       .mockRejectedValueOnce({ code: 'auth_network', message: 'fixture-password-secret' })
       .mockResolvedValueOnce(production);
-    render(<AuthPanel />);
+    render(<AuthHarness />);
     await userEvent.type(
       await screen.findByLabelText('Логин или email Ely.by'),
       'fixture@example.test',
@@ -214,7 +221,7 @@ describe('Ely.by password and TOTP', () => {
     vi.mocked(invoke)
       .mockResolvedValueOnce(challenge)
       .mockResolvedValueOnce({ ...production, revision: 2 });
-    render(<AuthPanel />);
+    render(<AuthHarness />);
     await screen.findByLabelText('Код TOTP');
     await userEvent.click(screen.getByRole('button', { name: 'Отменить вход' }));
     expect(await screen.findByLabelText('Пароль Ely.by')).toHaveValue('');
@@ -240,7 +247,7 @@ describe('secure credential storage UI', () => {
   };
   it('requires explicit remember intent and only reports persistence confirmed by backend', async () => {
     vi.mocked(invoke).mockResolvedValueOnce(supported).mockResolvedValueOnce(restored);
-    render(<AuthPanel />);
+    render(<AuthHarness />);
     const checkbox = await screen.findByRole('checkbox');
     expect(checkbox).not.toBeChecked();
     await userEvent.type(screen.getByLabelText('Логин или email Ely.by'), 'fixture@example.test');
@@ -266,7 +273,7 @@ describe('secure credential storage UI', () => {
         persistence: 'memory_only',
         notice: 'credential_store_unavailable',
       });
-    render(<AuthPanel />);
+    render(<AuthHarness />);
     await screen.findByRole('checkbox');
     expect(invoke).toHaveBeenCalledTimes(1);
     await userEvent.click(screen.getByRole('button', { name: 'Восстановить сохранённую сессию' }));

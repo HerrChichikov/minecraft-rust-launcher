@@ -1,17 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  createProfile,
-  getWorkspace,
-  saveProfile,
-  selectProfile,
-  StorageError,
-  switchDataRoot,
-} from './client';
+import { useState } from 'react';
+import type { useWorkspace } from './useWorkspace';
+import { createProfile, getWorkspace, saveProfile, selectProfile, switchDataRoot } from './client';
 import type { Profile, Workspace } from './client';
-
-function errorMessage(error: unknown) {
-  return error instanceof StorageError ? error.message : new StorageError().message;
-}
 
 function ProfileEditor({
   workspace,
@@ -132,61 +122,19 @@ function ProfileEditor({
   );
 }
 
-export function ProfilesPanel() {
-  const [workspace, setWorkspace] = useState<Workspace>();
-  const [error, setError] = useState<string>();
-  const [notice, setNotice] = useState<string>();
-  const [busy, setBusy] = useState(true);
+export function ProfilesPanel({
+  model,
+  operationActive,
+}: {
+  model: ReturnType<typeof useWorkspace>;
+  operationActive: boolean;
+}) {
+  const { workspace, busy: saving, error, notice, rootPath, setRootPath, run } = model;
+  const busy = saving || operationActive;
   const [newName, setNewName] = useState('');
-  const [rootPath, setRootPath] = useState('');
-  const mounted = useRef(false);
-  const pending = useRef(false);
-  useEffect(() => {
-    let active = true;
-    mounted.current = true;
-    void getWorkspace().then(
-      (w) => {
-        if (active) {
-          setWorkspace(w);
-          setRootPath(w.dataRoot);
-          setBusy(false);
-        }
-      },
-      (e: unknown) => {
-        if (active) {
-          setError(errorMessage(e));
-          setBusy(false);
-        }
-      },
-    );
-    return () => {
-      active = false;
-      mounted.current = false;
-    };
-  }, []);
-  async function run(action: () => Promise<Workspace>, success?: string) {
-    if (pending.current) return;
-    pending.current = true;
-    setBusy(true);
-    setError(undefined);
-    setNotice(undefined);
-    try {
-      const next = await action();
-      if (mounted.current) {
-        setNotice(success);
-        setWorkspace(next);
-        setRootPath(next.dataRoot);
-      }
-    } catch (e: unknown) {
-      if (mounted.current) setError(errorMessage(e));
-    } finally {
-      pending.current = false;
-      if (mounted.current) setBusy(false);
-    }
-  }
   const profile = workspace?.profiles.find((p) => p.id === workspace.activeProfileId);
   return (
-    <section className="profiles-card" aria-labelledby="profiles-title" aria-busy={busy}>
+    <section className="panel profiles-card" aria-labelledby="profiles-title" aria-busy={busy}>
       <div className="section-heading">
         <div>
           <p className="eyebrow">Ваши конфигурации</p>
@@ -203,13 +151,16 @@ export function ProfilesPanel() {
           Обновить список
         </button>
       </div>
+      {operationActive && (
+        <p className="field-help">Настройки можно изменить после завершения текущей операции.</p>
+      )}
       {error && (
         <p role="alert" className="storage-error">
           {error}
         </p>
       )}
       {notice && <p role="status">{notice}</p>}
-      {!workspace && busy && <p role="status">Загрузка профилей…</p>}
+      {!workspace && saving && <p role="status">Загрузка профилей…</p>}
       {workspace && profile && (
         <>
           <div className="profile-layout">

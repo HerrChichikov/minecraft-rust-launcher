@@ -1,6 +1,6 @@
 use super::{auth::AuthState, snapshot::ApiError, workspace::execute};
 use launcher_core::{
-    core::{EventSink, LauncherError as Error, OperationEvent, Platform, Result},
+    core::{EventSink, LauncherError as Error, OperationEvent, OperationStage, Platform, Result},
     installer::{Cancellation, InstallEngine, metadata::RuleContext},
     launcher::{GameExit, GameRunId, PreparedLaunch},
     profiles::ProfileId,
@@ -36,12 +36,14 @@ pub struct GameStatus {
     schema_version: u32,
     run_id: GameRunId,
     sequence: u64,
+    root_id: RootId,
     profile_id: ProfileId,
     profile_name: String,
     stage: Stage,
     exit: Option<GameExit>,
     error_code: Option<&'static str>,
     log_saved: Option<bool>,
+    preparation: Option<OperationEvent>,
 }
 
 #[derive(Debug)]
@@ -95,9 +97,25 @@ pub struct StopRequest {
     run_id: GameRunId,
 }
 
-struct IgnoreInstallProgress;
-impl EventSink for IgnoreInstallProgress {
-    fn publish(&self, _: OperationEvent) {}
+struct LaunchProgress<'a, R: Runtime> {
+    app: &'a AppHandle<R>,
+    run_id: GameRunId,
+}
+
+impl<R: Runtime> EventSink for LaunchProgress<'_, R> {
+    fn publish(&self, event: OperationEvent) {
+        if matches!(
+            event.stage,
+            OperationStage::Error | OperationStage::Cancelled
+        ) {
+            return;
+        }
+        transition(self.app, self.run_id, |status| {
+            if status.stage == Stage::Preparing {
+                status.preparation = Some(event);
+            }
+        });
+    }
 }
 
 fn publish<R: Runtime>(app: &AppHandle<R>, status: &GameStatus) {
@@ -139,6 +157,7 @@ pub async fn start_game<R: Runtime>(
         return Err(Error::GameBusy.into());
     }
     let (auth_revision, ely_by) = app.state::<AuthState>().launch_session()?;
+    let root_id = request.root_id;
     let (engine, profile, policy) = execute(app.clone(), move |workspace| {
         let snapshot = workspace.snapshot()?;
         if snapshot.root_id != request.root_id || snapshot.active_profile_id != request.profile_id {
@@ -166,12 +185,14 @@ pub async fn start_game<R: Runtime>(
             schema_version: 1,
             run_id,
             sequence: guard.job.as_ref().map_or(1, |job| job.status.sequence + 1),
+            root_id,
             profile_id: profile.id,
             profile_name: profile.name.clone(),
             stage: Stage::Preparing,
             exit: None,
             error_code: None,
             log_saved: None,
+            preparation: None,
         };
         guard.job = Some(Job {
             status: status.clone(),
@@ -191,7 +212,7 @@ pub async fn start_game<R: Runtime>(
                 profile,
                 policy,
                 context,
-                &IgnoreInstallProgress,
+                &LaunchProgress { app: &app, run_id },
                 ely_by,
             )?;
             drop(engine);

@@ -58,6 +58,7 @@ pub struct WorkspaceSnapshot {
     pub configuration_revision: u32,
     pub revision: u32,
     pub active_profile_id: ProfileId,
+    pub installation_recorded: bool,
     pub profiles: Vec<Profile>,
     pub policy: SettingsPolicy,
 }
@@ -117,6 +118,12 @@ impl WorkspaceService {
         if !profiles.iter().any(|p| p.id == selection.active_profile_id) {
             return Err(Error::CorruptDocument);
         }
+        let active_id = selection.active_profile_id.0.to_string();
+        let receipt = format!("installation-{active_id}.json");
+        let installation_recorded = fs::read::<serde_json::Value>(&self.root.state()?, &receipt)
+            .ok()
+            .flatten()
+            .is_some_and(|value| value["profileId"].as_str() == Some(active_id.as_str()));
         Ok(WorkspaceSnapshot {
             schema_version: 1,
             root_id: self.root.id,
@@ -124,6 +131,7 @@ impl WorkspaceService {
             configuration_revision: self.bootstrap.revision,
             revision: selection.revision,
             active_profile_id: selection.active_profile_id,
+            installation_recorded,
             profiles,
             policy: self.policy,
         })

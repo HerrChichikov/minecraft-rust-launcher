@@ -8,7 +8,7 @@ const errorMessages: Record<ClientErrorCode, { title: string; description: strin
   desktop_required: {
     title: 'Откройте desktop-приложение',
     description:
-      'Эта страница открыта в браузере. Для подключения к Rust-ядру запустите npm run dev в проекте.',
+      'Откройте установленный Launcher, чтобы войти в аккаунт, управлять профилями и запустить Minecraft.',
   },
   backend_unavailable: {
     title: 'Не удалось подключиться к ядру',

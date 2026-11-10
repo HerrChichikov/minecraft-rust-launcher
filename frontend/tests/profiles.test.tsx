@@ -3,11 +3,16 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProfilesPanel } from '../src/features/profiles/ProfilesPanel';
+import { useWorkspace } from '../src/features/profiles/useWorkspace';
 import { getWorkspace, parseWorkspace, StorageError } from '../src/features/profiles/client';
 import { workspaceFixture as fixture } from './fixtures';
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: vi.fn() }));
 
+function ProfilesHarness() {
+  const model = useWorkspace();
+  return <ProfilesPanel model={model} operationActive={false} />;
+}
 describe('profiles and persistent settings', () => {
   beforeEach(() => vi.mocked(isTauri).mockReturnValue(true));
 
@@ -37,7 +42,7 @@ describe('profiles and persistent settings', () => {
         resolve = done;
       }),
     );
-    render(<ProfilesPanel />);
+    render(<ProfilesHarness />);
     expect(screen.getByRole('status')).toHaveTextContent('Загрузка профилей');
     expect(screen.queryByLabelText('Название')).not.toBeInTheDocument();
     resolve?.(fixture);
@@ -47,7 +52,7 @@ describe('profiles and persistent settings', () => {
 
   it('sends validated revision context and waits for a successful save', async () => {
     vi.mocked(invoke).mockResolvedValueOnce(fixture);
-    render(<ProfilesPanel />);
+    render(<ProfilesHarness />);
     const name = await screen.findByLabelText('Название');
     await userEvent.clear(name);
     await userEvent.type(name, 'Изменённый мир');
@@ -91,7 +96,7 @@ describe('profiles and persistent settings', () => {
     vi.mocked(invoke)
       .mockResolvedValueOnce(fixture)
       .mockRejectedValueOnce({ code: 'revision_conflict', message: '/private/token-secret' });
-    render(<ProfilesPanel />);
+    render(<ProfilesHarness />);
     const name = await screen.findByLabelText('Название');
     await userEvent.clear(name);
     await userEvent.type(name, 'Unsaved draft');
@@ -116,7 +121,7 @@ describe('profiles and persistent settings', () => {
       .mockResolvedValueOnce(fixture)
       .mockResolvedValueOnce(two)
       .mockResolvedValueOnce({ ...two, activeProfileId: secondId, revision: 2 });
-    render(<ProfilesPanel />);
+    render(<ProfilesHarness />);
     const input = await screen.findByLabelText('Название нового профиля');
     await userEvent.type(input, 'Новый мир');
     await userEvent.click(screen.getByRole('button', { name: 'Создать профиль' }));
@@ -138,7 +143,7 @@ describe('profiles and persistent settings', () => {
         rootId: '45678901-1234-4567-8123-123456789abc',
         configurationRevision: 2,
       });
-    render(<ProfilesPanel />);
+    render(<ProfilesHarness />);
     const path = await screen.findByLabelText('Новый путь');
     expect(screen.getByText(/прежние миры и настройки останутся/)).toBeInTheDocument();
     await userEvent.clear(path);

@@ -22,6 +22,7 @@ export interface Workspace {
   revision: number;
   activeProfileId: string;
   profiles: Profile[];
+  installationRecorded: boolean;
   policy: { maxRamMib: number };
 }
 
@@ -98,6 +99,7 @@ export function parseWorkspace(v: unknown): Workspace {
     !positive(v.configurationRevision) ||
     !positive(v.revision) ||
     !uuid(v.activeProfileId) ||
+    typeof v.installationRecorded !== 'boolean' ||
     !Array.isArray(v.profiles) ||
     v.profiles.length === 0 ||
     v.profiles.length > 128 ||
@@ -119,6 +121,7 @@ export function parseWorkspace(v: unknown): Workspace {
     configurationRevision: v.configurationRevision,
     revision: v.revision,
     activeProfileId: v.activeProfileId,
+    installationRecorded: v.installationRecorded,
     profiles: v.profiles.map((p) => ({
       schemaVersion: 1,
       revision: p.revision,

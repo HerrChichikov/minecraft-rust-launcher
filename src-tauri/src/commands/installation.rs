@@ -14,12 +14,15 @@ use tauri::{AppHandle, Emitter, Manager, Runtime};
 pub struct InstallationStatus {
     schema_version: u32,
     operation_id: String,
+    root_id: RootId,
     profile_id: ProfileId,
     profile_name: String,
     stage: OperationStage,
     sequence: u64,
     completed_bytes: u64,
     total_bytes: Option<u64>,
+    downloaded_bytes: u64,
+    elapsed_ms: u64,
     error_code: Option<&'static str>,
     terminal: bool,
 }
@@ -46,48 +49,30 @@ pub struct CancelRequest {
 struct Sink<R: Runtime> {
     app: AppHandle<R>,
     job: Arc<Mutex<Option<Job>>>,
-    last_emit: Mutex<std::time::Instant>,
 }
 impl<R: Runtime> EventSink for Sink<R> {
     fn publish(&self, event: OperationEvent) {
-        let status = if let Ok(mut job) = self.job.lock() {
-            if let Some(job) = job.as_mut() {
-                if matches!(job.status.stage, OperationStage::Cancelling) {
-                    return;
-                }
-                if event.sequence <= job.status.sequence {
-                    return;
-                }
-                let stage_changed = job.status.stage != event.stage;
-                job.status.sequence = event.sequence;
-                job.status.stage = event.stage;
-                job.status.completed_bytes = if job.status.total_bytes == event.total_bytes {
-                    job.status.completed_bytes.max(event.completed_bytes)
-                } else {
-                    event.completed_bytes
-                };
-                job.status.total_bytes = event.total_bytes;
-                Some((job.status.clone(), stage_changed))
-            } else {
-                None
-            }
-        } else {
-            None
-        };
-        if let Some((status, stage_changed)) = status {
-            if let Ok(mut last) = self.last_emit.lock() {
-                if !stage_changed
-                    && last.elapsed() < std::time::Duration::from_millis(100)
-                    && !matches!(
-                        status.stage,
-                        OperationStage::Ready | OperationStage::Error | OperationStage::Cancelled
-                    )
-                {
-                    return;
-                }
-                *last = std::time::Instant::now();
-            }
-            let _ = self.app.emit_to("main", "launcher://installation", status);
+        if matches!(
+            event.stage,
+            OperationStage::Ready | OperationStage::Error | OperationStage::Cancelled
+        ) {
+            return;
+        }
+        if let Ok(mut job) = self.job.lock()
+            && let Some(job) = job.as_mut()
+            && !job.status.terminal
+            && job.status.stage != OperationStage::Cancelling
+        {
+            let status = &mut job.status;
+            status.sequence += 1;
+            status.stage = event.stage;
+            status.completed_bytes = event.completed_bytes;
+            status.total_bytes = event.total_bytes;
+            status.downloaded_bytes = event.downloaded_bytes;
+            status.elapsed_ms = event.elapsed_ms;
+            let _ = self
+                .app
+                .emit_to("main", "launcher://installation", status.clone());
         }
     }
 }
@@ -106,6 +91,7 @@ pub async fn start_install<R: Runtime>(
     app: AppHandle<R>,
     request: StartRequest,
 ) -> std::result::Result<InstallationStatus, ApiError> {
+    let root_id = request.root_id;
     let (engine, profile, platform) = execute(app.clone(), move |service| {
         let snapshot = service.snapshot()?;
         if snapshot.root_id != request.root_id {
@@ -128,15 +114,18 @@ pub async fn start_install<R: Runtime>(
     let cancel = engine.cancellation();
     let state = app.state::<InstallationState>();
     let shared = Arc::clone(&state.job);
-    let status = InstallationStatus {
+    let mut status = InstallationStatus {
         schema_version: 1,
         operation_id: engine.operation_id().0.to_string(),
+        root_id,
         profile_id: profile.id,
         profile_name: profile.name.clone(),
         stage: OperationStage::Initializing,
         sequence: 0,
         completed_bytes: 0,
         total_bytes: None,
+        downloaded_bytes: 0,
+        elapsed_ms: 0,
         error_code: None,
         terminal: false,
     };
@@ -147,16 +136,17 @@ pub async fn start_install<R: Runtime>(
         if job.as_ref().is_some_and(|j| !j.status.terminal) {
             return Err(ApiError::from(LauncherError::StorageBusy));
         }
+        status.sequence = job.as_ref().map_or(1, |j| j.status.sequence + 1);
         *job = Some(Job {
             status: status.clone(),
             cancel,
         });
+        let _ = app.emit_to("main", "launcher://installation", status.clone());
     }
     tauri::async_runtime::spawn_blocking(move || {
         let sink = Sink {
             app: app.clone(),
             job: Arc::clone(&shared),
-            last_emit: Mutex::new(std::time::Instant::now() - std::time::Duration::from_secs(1)),
         };
         let context = RuleContext::new(platform, sysinfo::System::os_version().unwrap_or_default());
         let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

@@ -33,6 +33,8 @@ pub struct OperationEvent {
     pub stage: OperationStage,
     pub completed_bytes: u64,
     pub total_bytes: Option<u64>,
+    pub downloaded_bytes: u64,
+    pub elapsed_ms: u64,
 }
 
 /// Implementations must bound queues and must not block a worker on frontend rendering.

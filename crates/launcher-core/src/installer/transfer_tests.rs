@@ -5,7 +5,7 @@ use super::{
     network::Http,
 };
 use crate::{
-    core::{LauncherError as Error, Result},
+    core::{LauncherError as Error, OperationStage, Result},
     profiles::SettingsPolicy,
     storage::{AppPaths, WorkspaceService},
 };
@@ -41,7 +41,19 @@ impl Server {
                     Ok((mut stream, _)) => {
                         let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
                         let mut request = [0; 4096];
-                        let _ = stream.read(&mut request);
+                        let mut received = 0;
+                        while received < request.len() {
+                            match stream.read(&mut request[received..]) {
+                                Ok(0) | Err(_) => break,
+                                Ok(size) => received += size,
+                            }
+                            if request[..received].windows(4).any(|v| v == b"\r\n\r\n") {
+                                break;
+                            }
+                        }
+                        if !request[..received].windows(4).any(|v| v == b"\r\n\r\n") {
+                            continue;
+                        }
                         let index = c.fetch_add(1, Ordering::AcqRel);
                         let body = if bad_first && index == 0 {
                             vec![b'x'; body.len()]
@@ -52,8 +64,10 @@ impl Server {
                             "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
                             body.len()
                         );
-                        let _ = stream.write_all(response.as_bytes());
-                        let _ = stream.write_all(&body);
+                        let mut response = response.into_bytes();
+                        response.extend(body);
+                        let _ = stream.write_all(&response);
+                        let _ = stream.shutdown(std::net::Shutdown::Write);
                     }
                     Err(_) => std::thread::sleep(Duration::from_millis(5)),
                 }
@@ -112,12 +126,17 @@ fn bad_hash_retries_valid_reuse_is_offline_and_same_size_corruption_repairs()
             size: body.len() as u64,
         },
     )?;
-    engine.ensure(&resource)?;
+    let transfer = std::cell::Cell::new(None);
+    engine.ensure_with_transfer(&resource, |stage| transfer.set(Some(stage)))?;
+    assert_eq!(transfer.get(), Some(OperationStage::Downloading));
     assert_eq!(server.count.load(Ordering::Acquire), 2);
-    engine.ensure(&resource)?;
+    transfer.set(None);
+    engine.ensure_with_transfer(&resource, |stage| transfer.set(Some(stage)))?;
+    assert_eq!(transfer.get(), None);
     assert_eq!(server.count.load(Ordering::Acquire), 2);
     std::fs::write(store.path(&resource.path)?, vec![b'z'; body.len()])?;
-    engine.ensure(&resource)?;
+    engine.ensure_with_transfer(&resource, |stage| transfer.set(Some(stage)))?;
+    assert_eq!(transfer.get(), Some(OperationStage::Repairing));
     assert_eq!(server.count.load(Ordering::Acquire), 3);
     assert_eq!(std::fs::read(store.path(&resource.path)?)?, body);
     assert!(

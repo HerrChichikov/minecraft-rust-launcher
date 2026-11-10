@@ -16,7 +16,7 @@ use std::{
         Arc, Mutex,
         atomic::{AtomicU64, Ordering},
     },
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 pub const VERSION_MANIFEST: &str =
@@ -44,6 +44,41 @@ pub struct InstallEngine {
     sequence: AtomicU64,
     downloaded: AtomicU64,
     reused: AtomicU64,
+    started_at: Instant,
+}
+
+struct FileProgress {
+    stage: OperationStage,
+    completed: u64,
+    last_event: Instant,
+}
+
+impl FileProgress {
+    fn update(
+        &mut self,
+        engine: &InstallEngine,
+        transfer: Option<OperationStage>,
+        completed: u64,
+        total: u64,
+        events: &dyn EventSink,
+    ) {
+        self.completed += completed;
+        let stage = match (self.stage, transfer) {
+            (OperationStage::Repairing, _) | (_, Some(OperationStage::Repairing)) => {
+                OperationStage::Repairing
+            }
+            (_, Some(stage)) => stage,
+            _ => self.stage,
+        };
+        if self.stage != stage
+            || self.completed == total
+            || self.last_event.elapsed() >= Duration::from_millis(120)
+        {
+            self.stage = stage;
+            self.last_event = Instant::now();
+            engine.event(stage, self.completed, Some(total), events);
+        }
+    }
 }
 impl std::fmt::Debug for InstallEngine {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -67,6 +102,7 @@ impl InstallEngine {
             sequence: AtomicU64::new(0),
             downloaded: AtomicU64::new(0),
             reused: AtomicU64::new(0),
+            started_at: Instant::now(),
         })
     }
     pub(super) fn add_reused(&self, bytes: u64) {
@@ -95,6 +131,8 @@ impl InstallEngine {
             stage,
             completed_bytes: completed,
             total_bytes: total,
+            downloaded_bytes: self.downloaded.load(Ordering::Relaxed),
+            elapsed_ms: self.started_at.elapsed().as_millis().min(u64::MAX as u128) as u64,
         });
     }
     pub fn plan(&self, profile: &Profile, context: &RuleContext) -> Result<VersionPlan> {
@@ -130,6 +168,14 @@ impl InstallEngine {
         Ok(plan)
     }
     pub(super) fn ensure(&self, resource: &Resource) -> Result<()> {
+        self.ensure_with_transfer(resource, |_| {})
+    }
+
+    pub(super) fn ensure_with_transfer(
+        &self,
+        resource: &Resource,
+        transfer: impl Fn(OperationStage),
+    ) -> Result<()> {
         resource.download.validate()?;
         self.http
             .validate(&reqwest::Url::parse(&resource.download.url).map_err(|_| Error::Metadata)?)?;
@@ -138,6 +184,12 @@ impl InstallEngine {
                 .fetch_add(resource.download.size, Ordering::Relaxed);
             return Ok(());
         }
+        let stage = if self.store.resource_exists(resource)? {
+            OperationStage::Repairing
+        } else {
+            OperationStage::Downloading
+        };
+        transfer(stage);
         for attempt in 0..3 {
             self.cancel.check()?;
             let result = self
@@ -152,6 +204,7 @@ impl InstallEngine {
                     }
                     self.store.publish(resource, response, &self.cancel, |n| {
                         self.downloaded.fetch_add(n, Ordering::Relaxed);
+                        transfer(stage);
                     })
                 });
             self.cancel.check()?;
@@ -204,7 +257,11 @@ impl InstallEngine {
         self.event(OperationStage::Checking, 0, Some(total), events);
         let queue = Mutex::new(resources.iter());
         let failure = Mutex::new(None);
-        let completed = AtomicU64::new(0);
+        let progress = Mutex::new(FileProgress {
+            stage: OperationStage::Checking,
+            completed: 0,
+            last_event: Instant::now(),
+        });
         std::thread::scope(|scope| {
             for _ in 0..8 {
                 scope.spawn(|| {
@@ -221,12 +278,21 @@ impl InstallEngine {
                         if failure.lock().map_or(true, |f| f.is_some()) {
                             return;
                         }
-                        match self.ensure(resource) {
+                        match self.ensure_with_transfer(resource, |stage| {
+                            if let Ok(mut progress) = progress.lock() {
+                                progress.update(self, Some(stage), 0, total, events);
+                            }
+                        }) {
                             Ok(()) => {
-                                let done = completed
-                                    .fetch_add(resource.download.size, Ordering::Relaxed)
-                                    + resource.download.size;
-                                self.event(OperationStage::Downloading, done, Some(total), events);
+                                if let Ok(mut progress) = progress.lock() {
+                                    progress.update(
+                                        self,
+                                        None,
+                                        resource.download.size,
+                                        total,
+                                        events,
+                                    );
+                                }
                             }
                             Err(e) => {
                                 if let Ok(mut failure) = failure.lock()

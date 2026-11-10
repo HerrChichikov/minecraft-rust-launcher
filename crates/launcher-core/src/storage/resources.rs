@@ -119,6 +119,10 @@ impl ResourceStore {
         fs::relative(relative)?;
         Ok(self.path.join(relative))
     }
+    pub(crate) fn resource_exists(&self, resource: &Resource) -> Result<bool> {
+        let (dir, name) = self.parent(&resource.path, false)?;
+        fs::regular(&dir, &name)
+    }
     pub fn valid(&self, resource: &Resource, cancel: &Cancellation) -> Result<bool> {
         Resource::new(resource.path.clone(), resource.download.clone())?;
         let (dir, name) = self.parent(&resource.path, true)?;

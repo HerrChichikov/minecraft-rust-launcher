@@ -5,6 +5,7 @@
   "configurationRevision": 1,
   "revision": 1,
   "activeProfileId": "23456789-1234-4567-8123-123456789abc",
+  "installationRecorded": false,
   "profiles": [
     {
       "schemaVersion": 1,

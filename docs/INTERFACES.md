@@ -91,3 +91,8 @@ CredentialStore.read/write/delete внедряется в AuthService; desktop n
 `PreparedLaunch::prepare` использует `InstallEngine` под блокировкой профиля. `PreparedLaunch::spawn` принимает свежий `LaunchIdentity` и возвращает владельца процесса `GameProcess`. `GameProcess::wait` возвращает `CompletedGame` с кодом выхода, статусом остановки и результатом записи журнала. Аргументы процесса, сырой вывод и токены остаются вне IPC.
 
 Main-only команды `get_game`, `start_game({ rootId, profileId, profileRevision })`, `stop_game({ runId })`. Аргументы команд обёрнуты в `request`, поля пути, PID и credentials не принимаются. Событие `launcher://game` и snapshot используют общую схему с runId, sequence, профилем, состоянием и безопасным кодом ошибки.
+
+
+## Phase 6
+
+`get_workspace` возвращает `installationRecorded` для активного профиля. Это наличие сохранённого результата прошлой подготовки. Актуальная проверка ресурсов выполняется при установке и запуске. `get_installation` и `launcher://installation` содержат `rootId`, `profileId`, счётчики подготовленных и загруженных байтов и время операции. Sequence растёт между операциями. `get_game` и `launcher://game` также передают `rootId` и последнее безопасное событие подготовки в `preparation`. Новые команды, разрешения и хранимые настройки не добавлены.

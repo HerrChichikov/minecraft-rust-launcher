@@ -2,7 +2,7 @@
 
 Основа desktop-лаунчера Minecraft Java Edition на Tauri 2, Rust и React / TypeScript / SCSS / Vite.
 
-**Phase 5: Launch Engine завершена.** Кнопка «Играть» проверяет установку и запускает Minecraft 1.21.1 с настройками активного профиля. Launcher показывает состояние и код выхода. Реальный запуск с тестовым входом проверен на macOS ARM64. CI прошёл на четырёх целевых платформах. [Результаты Phase 5](docs/PHASE_5_REVIEW.md).
+**Phase 6 · UI/UX.** В Launcher доступны отдельные экраны игры, аккаунта и настроек. Главный экран показывает профиль, версию Minecraft, подготовку файлов и состояние игры. [Результаты Phase 6](docs/PHASE_6_REVIEW.md).
 
 ## Запуск разработки
 
@@ -46,7 +46,7 @@ npm run tauri -- build --ci -- --locked
 
 ## Результаты и документация
 
-Начните с [отчёта Phase 5](docs/PHASE_5_REVIEW.md). [Phase 4](docs/PHASE_4_REVIEW.md) — Ely.by, развитие тестового входа и защищённое хранение токенов. [Phase 3](docs/PHASE_3_REVIEW.md) — установщик Minecraft/Java. [Phase 2](docs/PHASE_2_REVIEW.md) — завершённое хранилище и профили. [Phase 1](docs/PHASE_1_REVIEW.md) содержит исторические результаты foundation. [Phase 0](docs/PHASE_0_REVIEW.md) — историческое исследование, согласованное пользователем.
+Начните с [отчёта Phase 6](docs/PHASE_6_REVIEW.md). [Phase 5](docs/PHASE_5_REVIEW.md) — запуск Minecraft и управление процессом. [Phase 4](docs/PHASE_4_REVIEW.md) — Ely.by, развитие тестового входа и защищённое хранение токенов. [Phase 3](docs/PHASE_3_REVIEW.md) — установщик Minecraft/Java. [Phase 2](docs/PHASE_2_REVIEW.md) — завершённое хранилище и профили. [Phase 1](docs/PHASE_1_REVIEW.md) содержит исторические результаты foundation. [Phase 0](docs/PHASE_0_REVIEW.md) — историческое исследование, согласованное пользователем.
 
 | Документ                                   | Содержание                                   |
 | ------------------------------------------ | -------------------------------------------- |
@@ -65,4 +65,4 @@ npm run tauri -- build --ci -- --locked
 
 Исследовательские снимки проверяются offline: `python3 docs/research/verify_snapshot.py`. Эта проверка не заменяет application tests.
 
-Phase 6 начинается после согласования. Перед production-выпуском нужны real session/game/server smoke на всех платформах и согласованная подпись/распространение.
+Phase 7 начинается после согласования. Перед production-выпуском нужны real session/game/server smoke на всех платформах и согласованная подпись/распространение.

@@ -1,178 +1,124 @@
-import { useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
-import { getWorkspace } from './client';
+import type { Workspace } from './client';
+import { OperationProgress } from './OperationProgress';
+import type { useInstallation } from './useInstallation';
 
-import { parseInstallation } from './installationProtocol';
-import type { Status } from './installationProtocol';
-
-const stages: Record<string, string> = {
-  initializing: 'Получение метаданных',
-  checking: 'Проверка файлов',
-  downloading: 'Проверка и загрузка файлов',
-  extracting: 'Подготовка Java',
-  ready: 'Minecraft и Java подготовлены',
-  cancelling: 'Отмена операции…',
-  cancelled: 'Установка отменена',
-  error: 'Установка не завершена',
-};
 const errors: Record<string, string> = {
   network: 'Не удалось загрузить файл. Проверьте подключение и повторите установку.',
   integrity: 'Скачанный файл не прошёл проверку. Повторите установку.',
-  metadata: 'Метаданные имеют неподдерживаемый формат или адрес. Обновите приложение.',
-  runtime: 'Java не прошла проверку версии или архитектуры.',
-  storage: 'Проверьте права доступа, свободное место и занятость хранилища.',
+  metadata: 'Формат данных Minecraft изменился. Обновите лаунчер.',
+  runtime: 'Для запуска нужна совместимая Java 21. Проверьте её в настройках.',
+  storage: 'Проверьте права доступа и свободное место в папке данных.',
+  storage_busy: 'Файлы заняты другой операцией. Дождитесь её завершения.',
+  revision_conflict: 'Папка данных изменилась. Обновите профиль в настройках.',
 };
-export function InstallationPanel() {
-  const [status, setStatus] = useState<Status | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [starting, setStarting] = useState(false);
-  const [connected, setConnected] = useState(false);
-  const [error, setError] = useState<string>();
-  const alive = useRef(false);
-  function update(next: Status | null) {
-    setStatus((previous) =>
-      previous &&
-      next &&
-      previous.operationId === next.operationId &&
-      previous.sequence > next.sequence
-        ? previous
-        : next,
-    );
-  }
-  useEffect(() => {
-    let active = true;
-    let cleanup: (() => void) | undefined;
-    let received = false;
-    alive.current = true;
-    void listen<unknown>('launcher://installation', (event) => {
-      if (active) {
-        try {
-          const next = parseInstallation(event.payload);
-          received = true;
-          update(next);
-        } catch {
-          setError('Ответ ядра имеет неподдерживаемый формат.');
-        }
-      }
-    }).then(
-      async (unlisten) => {
-        if (!active) {
-          unlisten();
-          return;
-        }
-        cleanup = unlisten;
-        setConnected(true);
-        try {
-          const next = parseInstallation(await invoke<unknown>('get_installation'));
-          if (active && !received) update(next);
-        } catch {
-          if (active) setError('Не удалось получить состояние установки.');
-        } finally {
-          if (active) setLoading(false);
-        }
-      },
-      () => {
-        if (active) {
-          setError('Не удалось подключиться к событиям установки.');
-          setLoading(false);
-        }
-      },
-    );
-    return () => {
-      active = false;
-      alive.current = false;
-      cleanup?.();
-    };
-  }, []);
-  const busy = starting || (status !== null && !status.terminal);
-  async function start() {
-    setStarting(true);
-    setError(undefined);
-    try {
-      const workspace = await getWorkspace();
-      const next = parseInstallation(
-        await invoke<unknown>('start_install', {
-          request: { rootId: workspace.rootId, profileId: workspace.activeProfileId },
-        }),
-      );
-      if (alive.current) update(next);
-    } catch {
-      if (alive.current)
-        setError(
-          'Не удалось начать установку. Проверьте хранилище и дождитесь завершения другой операции.',
-        );
-    } finally {
-      if (alive.current) setStarting(false);
-    }
-  }
+
+function failure(value: unknown) {
+  const code =
+    value && typeof value === 'object' && 'code' in value && typeof value.code === 'string'
+      ? value.code
+      : '';
   return (
-    <section className="profiles-card" aria-labelledby="installation-title" aria-busy={busy}>
-      <p className="eyebrow">Minecraft 1.21.1</p>
-      <h2 id="installation-title">Установка игры</h2>
-      <p className="muted">
-        Официальные файлы клиента, библиотек, ресурсов и Java 21. При первом запуске потребуется
-        около 1–2 ГБ свободного места и подключение к сети.
-      </p>
-      {loading && <p role="status">Подключение к установщику…</p>}
-      {status && (
-        <div aria-live="polite">
-          <p className="field-help">Последняя операция · {status.profileName}</p>
-          <p>{stages[status.stage] ?? 'Операция выполняется'}</p>
-          {!status.terminal && status.totalBytes !== null && status.totalBytes > 0 && (
-            <>
-              <progress
-                max={status.totalBytes}
-                value={Math.min(status.completedBytes, status.totalBytes)}
-                aria-label="Подготовленные файлы"
-              />
-              <p className="field-help">
-                Подготовлено {Math.floor(status.completedBytes / 1048576)} /{' '}
-                {Math.ceil(status.totalBytes / 1048576)} МиБ. Уже проверенные файлы используются
-                повторно.
-              </p>
-            </>
+    (Object.hasOwn(errors, code) ? errors[code] : undefined) ??
+    'Не удалось начать установку. Проверьте папку данных и попробуйте снова.'
+  );
+}
+
+export function InstallationPanel({
+  model,
+  workspace,
+  gameActive,
+  prepared,
+}: {
+  model: ReturnType<typeof useInstallation>;
+  workspace: Workspace | undefined;
+  gameActive: boolean;
+  prepared: boolean;
+}) {
+  const { status, active, pending, connected, connectionError, error, reconnect, execute } = model;
+  const current =
+    status &&
+    (!status.terminal ||
+      (status.rootId === workspace?.rootId && status.profileId === workspace.activeProfileId))
+      ? status
+      : null;
+  const canStart = workspace && connected && !active && !gameActive;
+  return (
+    <section
+      className="panel installation-card"
+      aria-labelledby="installation-title"
+      aria-busy={active}
+    >
+      <p className="eyebrow">Файлы игры</p>
+      <h2 id="installation-title">Установка</h2>
+      {current ? (
+        <>
+          {!current.terminal && <p className="field-help">{current.profileName}</p>}
+          <OperationProgress progress={current} active={!current.terminal} />
+          {current.stage === 'error' && (
+            <p role="alert" className="storage-error">
+              {current.errorCode && Object.hasOwn(errors, current.errorCode)
+                ? errors[current.errorCode]
+                : errors.storage}
+            </p>
           )}
-          {status.errorCode && status.errorCode !== 'cancelled' && (
-            <p role="alert">{errors[status.errorCode] ?? errors.storage}</p>
-          )}
-        </div>
-      )}
-      {error && (
-        <p role="alert" className="storage-error">
-          {error}
+        </>
+      ) : (
+        <p className="muted">
+          {pending
+            ? 'Начинаем проверку…'
+            : !connected && !connectionError
+              ? 'Подключаемся к установщику…'
+              : prepared
+                ? 'Файлы ранее подготовлены. Лаунчер проверит их перед игрой.'
+                : 'Файлы ещё не проверены для этого профиля.'}
         </p>
       )}
-      <div className="installation-actions">
+      {(connectionError || error) && (
+        <p role="alert" className="storage-error">
+          {connectionError ?? error}
+        </p>
+      )}
+      <div className="button-row">
         <button
-          className="button button--primary"
-          disabled={loading || busy || !connected}
+          className="button button--secondary"
+          disabled={!canStart}
           type="button"
           onClick={() => {
-            void start();
+            if (canStart)
+              void execute(
+                () =>
+                  invoke('start_install', {
+                    request: { rootId: workspace.rootId, profileId: workspace.activeProfileId },
+                  }),
+                failure,
+              );
           }}
         >
           Проверить и установить
         </button>
-        {busy && status && (
+        {current && !current.terminal && (
           <button
-            className="button button--secondary"
+            className="button button--quiet"
             type="button"
-            disabled={status.stage === 'cancelling'}
+            disabled={pending || !connected || current.stage === 'cancelling'}
             onClick={() => {
-              void invoke('cancel_install', { request: { operationId: status.operationId } }).catch(
-                () => setError('Не удалось отправить запрос отмены.'),
+              void execute(
+                () => invoke('cancel_install', { request: { operationId: current.operationId } }),
+                () => 'Не удалось отменить установку. Повторите попытку.',
+                false,
               );
             }}
           >
             Отменить
           </button>
         )}
+        {connectionError && (
+          <button className="button button--quiet" type="button" onClick={reconnect}>
+            Подключиться снова
+          </button>
+        )}
       </div>
-      <p className="field-help">
-        Проверка пересчитывает SHA1 файлов. Повреждённые файлы восстанавливаются; игровые миры
-        сохраняются. Вход в аккаунт доступен в панели выше. Для запуска нажмите «Играть».
-      </p>
     </section>
   );
 }

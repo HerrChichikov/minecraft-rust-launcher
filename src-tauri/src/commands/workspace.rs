@@ -181,6 +181,7 @@ mod tests {
             active_profile_id: serde_json::from_value(serde_json::json!(
                 "23456789-1234-4567-8123-123456789abc"
             ))?,
+            installation_recorded: false,
             profiles: vec![launcher_core::profiles::Profile {
                 schema_version: 1,
                 revision: 1,

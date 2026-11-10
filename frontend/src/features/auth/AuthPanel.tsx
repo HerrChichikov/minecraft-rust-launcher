@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import type { useAuth } from './useAuth';
 import {
-  AuthError,
   getAuth,
   login,
   loginPassword,
@@ -9,84 +9,22 @@ import {
   refreshAuth,
   restoreAuth,
   logout,
-  type AuthSnapshot,
 } from './client';
-const messages: Record<string, string> = {
-  auth_unavailable: 'Выбранный способ входа пока недоступен.',
-  revision_conflict: 'Состояние сессии изменилось. Обновите его перед повтором.',
-  invalid_settings:
-    'Проверьте введённые данные. Тестовый ник: 3–16 латинских букв, цифр или знаков подчёркивания.',
-  auth_rejected: 'Ely.by отклонил данные входа. Проверьте логин, пароль или код.',
-  auth_network: 'Не удалось связаться с Ely.by. Попробуйте ещё раз.',
-  auth_protocol: 'Ely.by вернул неподдерживаемый ответ. Попробуйте позже.',
-  auth_challenge_expired: 'Время ввода кода истекло. Введите логин и пароль заново.',
-  auth_busy: 'Вход уже выполняется. Дождитесь завершения и обновите состояние.',
-  authentication_required: 'Сессия истекла. Выйдите и выполните вход заново.',
-  credential_store_unavailable:
-    'Системное хранилище недоступно или заблокировано. Можно войти на текущую сессию.',
-  saved_session_missing: 'Сохранённой сессии нет. Введите логин и пароль.',
-  desktop_required: 'Для входа откройте desktop-приложение.',
-};
-export function AuthPanel() {
-  const [snapshot, setSnapshot] = useState<AuthSnapshot>();
+export function AuthPanel({ model }: { model: ReturnType<typeof useAuth> }) {
+  const { snapshot, busy, error, run } = model;
+  const [provider, setProvider] = useState<'ely' | 'mock'>();
   const [nickname, setNickname] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [totp, setTotp] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
-  const revision = useRef(-1);
-  function accept(s: AuthSnapshot) {
-    if (s.revision >= revision.current) {
-      revision.current = s.revision;
-      setSnapshot(s);
-    }
-  }
-  useEffect(() => {
-    let active = true;
-    void getAuth()
-      .then((s) => {
-        if (active && s.revision >= revision.current) {
-          revision.current = s.revision;
-          setSnapshot(s);
-        }
-      })
-      .catch(() => {
-        if (active && revision.current < 0)
-          setError('Не удалось получить состояние входа. Попробуйте обновить.');
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-  async function run(action: () => Promise<AuthSnapshot>) {
-    setBusy(true);
-    setError(undefined);
-    try {
-      accept(await action());
-    } catch (e: unknown) {
-      setError(
-        e instanceof AuthError && messages[e.code]
-          ? messages[e.code]
-          : 'Не удалось выполнить действие. Попробуйте обновить состояние.',
-      );
-      try {
-        accept(await getAuth());
-      } catch {
-        /* Preserve known state until an explicit refresh succeeds. */
-      }
-    } finally {
-      setBusy(false);
-    }
-  }
   const mock = snapshot?.providers.some((p) => p.id === 'development-mock' && p.available);
   const ely = snapshot?.providers.some((p) => p.id === 'ely-by' && p.available);
+  const useMock = mock && (provider === 'mock' || !ely);
   return (
-    <section className="profiles-card auth-card" aria-labelledby="auth-title">
+    <section className="panel auth-card" aria-labelledby="auth-title" aria-busy={busy}>
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Аккаунт</p>
           <h2 id="auth-title">Вход в игру</h2>
         </div>
         <button className="button" type="button" disabled={busy} onClick={() => void run(getAuth)}>
@@ -182,7 +120,7 @@ export function AuthPanel() {
                   : 'Вход в Ely.by выполнен:'}{' '}
                 <strong>{snapshot.account.playerName}</strong>
               </p>
-              <p className="field-help">UUID: {snapshot.account.playerId}</p>
+
               <div className="installation-actions">
                 <button
                   className="button"
@@ -204,7 +142,32 @@ export function AuthPanel() {
             </div>
           ) : (
             <>
-              {ely ? (
+              {mock && ely && (
+                <div className="provider-switch" role="group" aria-label="Способ входа">
+                  <button
+                    className="button"
+                    type="button"
+                    aria-pressed={!useMock}
+                    disabled={busy}
+                    onClick={() => setProvider('ely')}
+                  >
+                    Ely.by
+                  </button>
+                  <button
+                    className="button"
+                    type="button"
+                    aria-pressed={useMock}
+                    disabled={busy}
+                    onClick={() => {
+                      setPassword('');
+                      setProvider('mock');
+                    }}
+                  >
+                    Тестовый вход
+                  </button>
+                </div>
+              )}
+              {ely && !useMock && (
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -259,10 +222,9 @@ export function AuthPanel() {
                     {busy ? 'Выполняется вход…' : 'Войти через Ely.by'}
                   </button>
                 </form>
-              ) : (
-                <p className="muted">Ely.by: реальный вход пока недоступен.</p>
               )}
-              {mock && (
+              {!ely && !mock && <p className="muted">Вход временно недоступен.</p>}
+              {useMock && (
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -295,7 +257,7 @@ export function AuthPanel() {
             </>
           )}
           {busy && <p role="status">Связываемся с провайдером…</p>}
-          {snapshot.rememberSupported && !snapshot.account && !snapshot.challenge && (
+          {snapshot.rememberSupported && !snapshot.account && !snapshot.challenge && !useMock && (
             <div className="installation-actions">
               <button
                 className="button"

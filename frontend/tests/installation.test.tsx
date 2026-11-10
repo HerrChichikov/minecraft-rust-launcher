@@ -5,6 +5,7 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { InstallationPanel } from '../src/features/profiles/InstallationPanel';
+import { useInstallation } from '../src/features/profiles/useInstallation';
 import { parseInstallation } from '../src/features/profiles/installationProtocol';
 import { workspaceFixture } from './fixtures';
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn(), isTauri: () => true }));
@@ -13,6 +14,9 @@ const running = {
   schemaVersion: 1,
   operationId: '12345678-1234-4567-8123-123456789abc',
   profileId: workspaceFixture.activeProfileId,
+  rootId: workspaceFixture.rootId,
+  downloadedBytes: 32768,
+  elapsedMs: 500,
   profileName: 'Основная конфигурация',
   stage: 'downloading',
   sequence: 1,
@@ -25,6 +29,17 @@ let callback: ((event: Event<unknown>) => void) | undefined;
 function emit(value: unknown) {
   act(() => callback?.({ event: 'launcher://installation', id: 1, payload: value }));
 }
+function InstallationHarness() {
+  const model = useInstallation();
+  return (
+    <InstallationPanel
+      model={model}
+      workspace={workspaceFixture}
+      gameActive={false}
+      prepared={false}
+    />
+  );
+}
 describe('installation UI', () => {
   beforeEach(() => {
     callback = undefined;
@@ -35,10 +50,12 @@ describe('installation UI', () => {
   });
   it('reconnects to real backend state without manufacturing success', async () => {
     vi.mocked(invoke).mockResolvedValue(running);
-    render(<InstallationPanel />);
-    expect(await screen.findByText('Проверка и загрузка файлов')).toBeInTheDocument();
+    render(<InstallationHarness />);
+    expect(await screen.findByText('Загружаем файлы')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Проверить и установить' })).toBeDisabled();
     expect(screen.queryByText('Minecraft и Java подготовлены')).not.toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveValue(10);
+    expect(screen.getByText('В среднем 64 КиБ/с')).toBeInTheDocument();
   });
   it('does not roll a terminal event back to an older start response', async () => {
     let resolve: ((value: unknown) => void) | undefined;
@@ -49,7 +66,7 @@ describe('installation UI', () => {
         resolve = done;
       });
     });
-    render(<InstallationPanel />);
+    render(<InstallationHarness />);
     const start = screen.getByRole('button', { name: 'Проверить и установить' });
     await waitFor(() => expect(start).toBeEnabled());
     await userEvent.click(start);
@@ -63,7 +80,7 @@ describe('installation UI', () => {
   });
   it('cancels only the operation identified by the backend', async () => {
     vi.mocked(invoke).mockResolvedValueOnce(running).mockResolvedValueOnce(undefined);
-    render(<InstallationPanel />);
+    render(<InstallationHarness />);
     const cancel = await screen.findByRole('button', { name: 'Отменить' });
     await userEvent.click(cancel);
     expect(invoke).toHaveBeenLastCalledWith('cancel_install', {
@@ -80,7 +97,7 @@ describe('installation UI', () => {
       terminal: true,
       errorCode: 'network',
     });
-    render(<InstallationPanel />);
+    render(<InstallationHarness />);
     expect(await screen.findByRole('alert')).toHaveTextContent('Проверьте подключение');
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Проверить и установить' })).toBeEnabled(),
