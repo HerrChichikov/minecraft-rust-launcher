@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "phase": 6,
+  "date": "2026-11-10",
+  "sourceCommit": "2015aa845ba7803833b3c15d4dd8578c7d28640d",
+  "platform": "macOS ARM64",
+  "localChecks": {
+    "frontendTests": 44,
+    "coreDefaultTests": 53,
+    "coreDevelopmentTests": 55,
+    "desktopDebugIpcTests": 13,
+    "desktopReleaseIpcTests": 13,
+    "releaseDevAuthGuard": "expected rejection in launcher-core and launcher-desktop",
+    "clippy": "default and dev-auth passed"
+  },
+  "package": {
+    "name": "Launcher_0.1.0_aarch64.dmg",
+    "bytes": 5279739,
+    "sha256": "32c59984525f099f00b38437f8ecadacc896bc99ea4584964774625e24eca663",
+    "appSignature": "ad-hoc, codesign --verify --deep --strict passed",
+    "notarized": false
+  },
+  "nativeSmoke": {
+    "build": "ad-hoc development app, isolated identifier dev.launcher.phase6.smoke",
+    "candidateFrontendAsset": "index-BEB7SzSc.js",
+    "finalFrontendAsset": "index--Guzcg2t.js",
+    "candidateDifference": "Final source adds reconnect recovery when a valid event arrives after a failed initial snapshot. This path is independent of the successful native smoke.",
+    "homeScreenshotReviewed": true,
+    "settingsAndAccountViews": true,
+    "installProgressAndMeasuredSpeed": true,
+    "installCancelled": true,
+    "mockSignIn": true,
+    "savedRamMiB": 3072,
+    "preparedReceiptRecognized": true,
+    "realGameFromPlay": true,
+    "gamePreparingAndRunningObserved": true,
+    "forcedStopConfirmationObserved": true,
+    "gameStoppedAndPlayReenabled": true,
+    "renderAndSoundConfirmedByLocalLog": true,
+    "activeRunMarkerCleared": true,
+    "originalConfigFingerprintsMatchingPriorBaseline": 4
+  },
+  "limitations": [
+    "Native graphical smoke was performed on macOS ARM64.",
+    "Real Ely.by server join was not exercised in Phase 6."
+  ]
+}

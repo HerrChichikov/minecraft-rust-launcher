@@ -1,6 +1,6 @@
 # CI/CD
 
-Создан [.github/workflows/ci.yml](../.github/workflows/ci.yml). Workflow запускается по push, pull_request и workflow_dispatch, с `contents: read`, отменой устаревших runs и без release publishing/signing secrets. Наличие YAML не равно успешному run: актуальные результаты перечислены в [Phase 5 review](PHASE_5_REVIEW.md), предыдущие этапы зафиксированы ниже.
+Создан [.github/workflows/ci.yml](../.github/workflows/ci.yml). Workflow запускается по push, pull_request и workflow_dispatch, с `contents: read`, отменой устаревших runs и без release publishing/signing secrets. Актуальные результаты приведены в [отчёте Phase 6](PHASE_6_REVIEW.md).
 
 Phase 1 matrix подтверждена [успешным run 42259358488](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42259358488) на source commit `0f9480b9ac5058683728296472fe9325384e5283`: frontend quality и четыре native desktop jobs, 4 uploaded target artifacts. Фиксация этих результатов — documentation-only; application source и workflow после проверенного коммита не меняются.
 
@@ -59,5 +59,9 @@ Phase 3 финальный [run 42314460830](https://github.com/HerrChichikov/mi
 ## Phase 5 matrix
 
 [Run 42701859712](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42701859712) завершён успешно на `33b5362f811dbc0556e4dd866339129cf1be93af`. Windows job повторён на том же коммите после сбоя HTTP fixture в development-тестах. Frontend и другие платформы сохранили результаты первой попытки. Новые проверки охватывают argv, процесс и его вывод, восстановление блокировок и ACL. CI публикует четыре пакета и четыре отчёта установщика. [Артефакты, шаги и digest](validation/phase-5-ci.json).
+
+## Phase 6 matrix
+
+Frontend и все четыре нативные задачи прошли с первой попытки на `2015aa845ba7803833b3c15d4dd8578c7d28640d`. Матрица проверила установку и повторное использование Minecraft и Java, целостность Authlib Injector и выпуск пакетов. CI опубликовал четыре пакета и четыре отчёта установщика. [Запуск 42755941978](https://github.com/HerrChichikov/minecraft-rust-launcher/actions/runs/42755941978) · [Артефакты, шаги и SHA-256](validation/phase-6-ci.json).
 
 Реальный графический запуск выполнен отдельно на macOS ARM64. CI проверяет подготовку, сборку и тестовые дочерние процессы. Вход в Minecraft-сервер с реальным Ely.by аккаунтом остаётся отдельной проверкой.
