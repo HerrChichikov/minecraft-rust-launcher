@@ -25,7 +25,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let store = service.installation_store(snapshot.root_id, snapshot.active_profile_id)?;
     let cancel = Cancellation::default();
     let prepared = agent::ensure(store.clone(), &cancel)?;
-    let args = prepared.jvm_arguments(&cancel)?;
+    let api_root = reqwest::Url::parse("https://auth.example.test/yggdrasil/test/")?;
+    let args = prepared.jvm_arguments(&cancel, &api_root)?;
     assert_eq!(args[0], "-Dauthlibinjector.noLogFile");
     let text = args[1].to_str().ok_or("invalid argument")?;
     let path = text
@@ -37,13 +38,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     bytes[0] ^= 1;
     std::fs::write(path, &bytes)?;
     assert!(matches!(
-        prepared.jvm_arguments(&cancel),
+        prepared.jvm_arguments(&cancel, &api_root),
         Err(LauncherError::Integrity)
     ));
     let repaired = agent::ensure(store.clone(), &cancel)?;
-    repaired.jvm_arguments(&cancel)?;
+    repaired.jvm_arguments(&cancel, &api_root)?;
     let reused = agent::ensure(store, &cancel)?;
-    reused.jvm_arguments(&cancel)?;
+    reused.jvm_arguments(&cancel, &api_root)?;
     println!(
         "{}",
         serde_json::json!({"build":agent::BUILD,"version":agent::VERSION,"sha256":agent::SHA256,"sourceCommit":agent::SOURCE_COMMIT,"bytes":size,"downloadVerification":"pass","sameSizeCorruptionRejected":true,"repair":"pass","reuse":"pass","execution":"not attempted"})

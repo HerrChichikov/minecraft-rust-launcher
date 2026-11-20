@@ -2,9 +2,10 @@
 
 pub mod agent;
 mod credentials;
-mod ely;
+mod platform;
 mod service;
-pub use ely::{ElyByAuthProvider, ElyByConfiguration};
+pub use credentials::REFERENCE as CREDENTIAL_REFERENCE;
+pub use platform::{PROVIDER_ID, PlatformClient};
 pub use service::{AccountSummary, AuthService, AuthSnapshot, ProviderCapabilities};
 #[cfg(all(debug_assertions, feature = "dev-auth"))]
 mod mock;
@@ -56,7 +57,6 @@ pub enum AuthInput {
     Password {
         login: String,
         password: SecretString,
-        totp: Option<SecretString>,
     },
     #[cfg(all(debug_assertions, feature = "dev-auth"))]
     DevelopmentNickname { nickname: String },
@@ -65,7 +65,6 @@ pub enum AuthInput {
 #[derive(Debug)]
 pub enum AuthOutcome {
     Authenticated(Session),
-    TotpRequired { challenge_id: Uuid },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -79,7 +78,7 @@ pub struct LaunchIdentity {
     pub profile: PlayerProfile,
     pub access_token: SecretString,
     pub user_type: String,
-    pub requires_ely_by_agent: bool,
+    pub agent_api: Option<reqwest::Url>,
 }
 
 /// Bounded blocking provider I/O; desktop adapters execute it on blocking workers.

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 2,
+  "revision": 0,
+  "providers": [
+    {
+      "id": "platform",
+      "available": false,
+      "development": false,
+      "flows": [],
+      "unavailableReason": "platform_url_missing"
+    }
+  ],
+  "account": null,
+  "persistence": "memory_only",
+  "gameProfiles": [],
+  "selectedGameProfileId": null,
+  "notice": null,
+  "rememberSupported": false
+}

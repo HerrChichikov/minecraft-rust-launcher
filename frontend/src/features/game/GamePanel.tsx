@@ -12,6 +12,8 @@ export function GamePanel({
   installActive,
   controlsBusy = false,
   signedIn,
+  profileSelectionRequired = false,
+  realm,
   onSignIn,
 }: {
   model: ReturnType<typeof useGame>;
@@ -20,6 +22,8 @@ export function GamePanel({
   installActive: boolean;
   controlsBusy?: boolean;
   signedIn: boolean;
+  profileSelectionRequired?: boolean;
+  realm?: string | undefined;
   onSignIn: () => void;
 }) {
   const { status, connected, pending, active, connectionError, error, execute, reconnect } = model;
@@ -59,7 +63,7 @@ export function GamePanel({
           aria-describedby="play-help"
           onClick={() => {
             if (!workspace || !profile) return;
-            if (!signedIn) {
+            if (!signedIn || profileSelectionRequired) {
               onSignIn();
               return;
             }
@@ -79,7 +83,13 @@ export function GamePanel({
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <path d="m8 5 12 7-12 7z" fill="currentColor" />
           </svg>
-          {active ? 'Играть' : signedIn ? 'Играть' : 'Войти для игры'}
+          {active
+            ? 'Играть'
+            : !signedIn
+              ? 'Войти для игры'
+              : profileSelectionRequired
+                ? 'Выбрать игровой профиль'
+                : 'Играть'}
         </button>
         {game && (running || preparing || stopping) && (
           <button
@@ -140,7 +150,11 @@ export function GamePanel({
                     ? 'Подключаемся к игре…'
                     : !signedIn
                       ? 'Войдите в аккаунт, чтобы играть.'
-                      : 'Лаунчер проверит файлы перед запуском.'}
+                      : profileSelectionRequired
+                        ? 'Для запуска нужен игровой профиль.'
+                        : realm
+                          ? `Игровой сервер: ${realm}`
+                          : 'Лаунчер проверит файлы перед запуском.'}
         {game?.exit?.code != null && !game.exit.stopped && ` · Код выхода ${game.exit.code}`}
       </p>
       {game?.stage === 'preparing' && game.preparation && (

@@ -1,15 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
-import { AuthError, getAuth, type AuthSnapshot } from './client';
+import { isTauri } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AuthError, getAuth, parseAuth, type AuthSnapshot } from './client';
 
 const messages: Record<string, string> = {
   auth_unavailable: 'Выбранный способ входа пока недоступен.',
   revision_conflict: 'Состояние сессии изменилось. Обновите его перед повтором.',
   invalid_settings:
     'Проверьте введённые данные. Тестовый ник: 3–16 латинских букв, цифр или знаков подчёркивания.',
-  auth_rejected: 'Ely.by отклонил данные входа. Проверьте логин, пароль или код.',
-  auth_network: 'Не удалось связаться с Ely.by. Попробуйте ещё раз.',
-  auth_protocol: 'Ely.by вернул неподдерживаемый ответ. Попробуйте позже.',
-  auth_challenge_expired: 'Время ввода кода истекло. Введите логин и пароль заново.',
+  auth_rejected: 'Проверьте логин и пароль или данные регистрации.',
+  auth_network: 'Не удалось связаться с сервером авторизации. Попробуйте ещё раз.',
+  auth_protocol: 'Сервер авторизации вернул неподдерживаемый ответ. Попробуйте позже.',
+  auth_throttled: 'Слишком много попыток. Попробуйте позже.',
+  game_profile_unavailable: 'Обновите список и выберите доступный игровой профиль.',
   auth_busy: 'Вход уже выполняется. Дождитесь завершения и обновите состояние.',
   authentication_required: 'Сессия истекла. Выйдите и выполните вход заново.',
   credential_store_unavailable:
@@ -23,36 +26,51 @@ export function useAuth() {
   const [error, setError] = useState<string>();
   const revision = useRef(-1);
   const pending = useRef(false);
-  function accept(s: AuthSnapshot) {
-    if (s.revision >= revision.current) {
+  const accept = useCallback((s: AuthSnapshot) => {
+    if (s.revision > revision.current) {
       revision.current = s.revision;
       setSnapshot(s);
     }
-  }
+  }, []);
   useEffect(() => {
     let active = true;
-    void getAuth()
-      .then((s) => {
-        if (active && s.revision >= revision.current) {
-          revision.current = s.revision;
-          setSnapshot(s);
+    let unlisten: (() => void) | undefined;
+    void (async () => {
+      try {
+        if (isTauri()) {
+          unlisten = await listen<unknown>('launcher://auth', ({ payload }) => {
+            if (!active) return;
+            try {
+              accept(parseAuth(payload));
+            } catch {
+              setError('Не удалось прочитать обновление сессии.');
+            }
+          });
+          if (!active) {
+            unlisten();
+            return;
+          }
         }
-      })
-      .catch(() => {
+        const initial = await getAuth();
+        if (active) accept(initial);
+      } catch {
         if (active && revision.current < 0)
           setError('Не удалось получить состояние входа. Попробуйте обновить.');
-      });
+      }
+    })();
     return () => {
       active = false;
+      unlisten?.();
     };
-  }, []);
+  }, [accept]);
   async function run(action: () => Promise<AuthSnapshot>) {
-    if (pending.current) return;
+    if (pending.current) return false;
     pending.current = true;
     setBusy(true);
     setError(undefined);
     try {
       accept(await action());
+      return true;
     } catch (e: unknown) {
       setError(
         e instanceof AuthError && Object.hasOwn(messages, e.code)
@@ -64,6 +82,7 @@ export function useAuth() {
       } catch {
         /* Preserve known state until an explicit refresh succeeds. */
       }
+      return false;
     } finally {
       pending.current = false;
       setBusy(false);

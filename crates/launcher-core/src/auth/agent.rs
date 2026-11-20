@@ -35,7 +35,11 @@ pub struct VerifiedAgent {
 }
 impl VerifiedAgent {
     /// Call again immediately before spawn; cached descriptors are never hash authority.
-    pub fn jvm_arguments(&self, cancel: &Cancellation) -> Result<Vec<OsString>> {
+    pub fn jvm_arguments(
+        &self,
+        cancel: &Cancellation,
+        api_root: &reqwest::Url,
+    ) -> Result<Vec<OsString>> {
         cancel.check()?;
         let bytes = self
             .store
@@ -52,11 +56,7 @@ impl VerifiedAgent {
         }
         Ok(vec![
             "-Dauthlibinjector.noLogFile".into(),
-            format!(
-                "-javaagent:{text}={}",
-                super::ElyByConfiguration::default().injector_api_root
-            )
-            .into(),
+            format!("-javaagent:{text}={api_root}").into(),
         ])
     }
 }

@@ -27,8 +27,10 @@ type GameStatus = {
 const errors: Record<string, string> = {
   authentication_required: 'Войдите в аккаунт, чтобы запустить игру.',
   auth_busy: 'Дождитесь завершения входа и попробуйте снова.',
-  auth_rejected: 'Сессия Ely.by истекла. Войдите снова.',
-  auth_network: 'Сервис Ely.by недоступен. Повторите попытку позже.',
+  auth_rejected: 'Сервер отклонил запрос игровой сессии.',
+  auth_network: 'Сервер авторизации недоступен. Повторите попытку позже.',
+  game_profile_unavailable: 'Выберите доступный игровой профиль в разделе «Аккаунт».',
+  auth_throttled: 'Слишком много попыток. Попробуйте позже.',
   auth_unavailable: 'Этот способ входа недоступен в данной сборке.',
   game_busy: 'Дождитесь завершения текущего запуска или игры.',
   game_recovery_required:

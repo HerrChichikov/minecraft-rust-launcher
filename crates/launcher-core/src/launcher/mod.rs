@@ -83,7 +83,7 @@ impl PreparedLaunch {
         policy: SettingsPolicy,
         context: metadata::RuleContext,
         events: &dyn EventSink,
-        ely_by: bool,
+        needs_agent: bool,
     ) -> Result<Self> {
         validation::settings(&profile.settings, policy, true)?;
         if ["-XX:+UseG1GC", "-XX:+UseZGC", "-XX:+UseParallelGC"]
@@ -108,7 +108,7 @@ impl PreparedLaunch {
         let installed =
             engine.prepare(&plan, context.platform, events, &profile.settings.runtime)?;
         let cancel = engine.cancellation();
-        let agent = if ely_by {
+        let agent = if needs_agent {
             Some(agent::ensure(Arc::clone(&store), &cancel)?)
         } else {
             None
@@ -139,15 +139,14 @@ impl PreparedLaunch {
 
     /// Call with a freshly validated backend identity. Neither argv nor tokens cross IPC.
     pub fn spawn(self, identity: LaunchIdentity, cancel: &Cancellation) -> Result<GameProcess> {
-        if identity.requires_ely_by_agent != self.agent.is_some()
-            || (!identity.requires_ely_by_agent
-                && !cfg!(all(debug_assertions, feature = "dev-auth")))
+        if identity.agent_api.is_some() != self.agent.is_some()
+            || (identity.agent_api.is_none() && !cfg!(all(debug_assertions, feature = "dev-auth")))
         {
             return Err(Error::AuthUnavailable);
         }
         let mut argv = arguments::build(&self, &identity)?;
-        if let Some(agent) = &self.agent {
-            let agent_args = agent.jvm_arguments(cancel)?;
+        if let (Some(agent), Some(api_root)) = (&self.agent, &identity.agent_api) {
+            let agent_args = agent.jvm_arguments(cancel, api_root)?;
             argv.splice(0..0, agent_args);
         }
         cancel.check()?;

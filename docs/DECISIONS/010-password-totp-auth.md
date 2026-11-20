@@ -1,5 +1,7 @@
 # ADR-010 — Ely.by password/TOTP и OS credentials и memory session
 
+История Phase 4. Текущая реализация использует [mine_go_auth](https://github.com/HerrChichikov/mine_go_auth).
+
 Дата: 2026-11-07. Статус: принято. Пользователь явно выбрал реализацию документированного password + TOTP flow; desktop OAuth/PKCE не подтверждён и не используется.
 
 ElyByAuthProvider использует fixed HTTPS auth base из provider configuration, reusable bounded blocking client без redirects/automatic POST retries. AuthService управляет password challenge (120 секунд, максимум 5 попыток), clientToken binding, rotation, validate-before-launch и local logout с отдельным remote revoke notice. Desktop commands выполняют I/O на blocking worker; dedicated mutex try_lock обеспечивает single-flight без ожидания UI/Workspace mutex.

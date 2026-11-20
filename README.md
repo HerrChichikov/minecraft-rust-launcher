@@ -46,6 +46,8 @@ npm run tauri -- build --ci -- --locked
 
 ## Результаты и документация
 
+[Собственный сервис авторизации mine_go_auth](https://github.com/HerrChichikov/mine_go_auth) описывает настройку общего аккаунта сайта и лаунчера, выдачу игрового токена и подключение Authlib Injector. Для сборки с реальным входом задайте `LAUNCHER_AUTH_URL`.
+
 Начните с [отчёта Phase 6](docs/PHASE_6_REVIEW.md). [Phase 5](docs/PHASE_5_REVIEW.md) — запуск Minecraft и управление процессом. [Phase 4](docs/PHASE_4_REVIEW.md) — Ely.by, развитие тестового входа и защищённое хранение токенов. [Phase 3](docs/PHASE_3_REVIEW.md) — установщик Minecraft/Java. [Phase 2](docs/PHASE_2_REVIEW.md) — завершённое хранилище и профили. [Phase 1](docs/PHASE_1_REVIEW.md) содержит исторические результаты foundation. [Phase 0](docs/PHASE_0_REVIEW.md) — историческое исследование, согласованное пользователем.
 
 | Документ                                   | Содержание                                   |
