@@ -1,6 +1,6 @@
 //! Native OS credentials on one dedicated thread (some stores require ordered thread access).
 use launcher_core::{
-    auth::SecretString,
+    auth::{CREDENTIAL_REFERENCE, SecretString},
     core::{LauncherError as Error, Result},
     storage::CredentialStore,
 };
@@ -16,7 +16,7 @@ enum Request {
     Delete(mpsc::SyncSender<Result<()>>),
 }
 fn entry() -> Result<keyring::Entry> {
-    keyring::Entry::new("dev.launcher.desktop", "ely-by/current")
+    keyring::Entry::new("dev.launcher.desktop", CREDENTIAL_REFERENCE)
         .map_err(|_| Error::CredentialStoreUnavailable)
 }
 fn read() -> Result<Option<SecretString>> {
@@ -39,7 +39,7 @@ fn delete() -> Result<()> {
 }
 impl NativeCredentialStore {
     fn sender(&self, reference: &str) -> Result<&mpsc::SyncSender<Request>> {
-        if reference != "ely-by/current" {
+        if reference != CREDENTIAL_REFERENCE {
             return Err(Error::AuthUnavailable);
         }
         self.worker

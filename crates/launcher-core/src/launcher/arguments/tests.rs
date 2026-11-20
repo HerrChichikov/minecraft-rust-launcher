@@ -34,7 +34,7 @@ fn official_metadata_builds_argv_for_all_four_targets() -> Result<()> {
         },
         access_token: SecretString::new("test-token".into()),
         user_type: "mojang".into(),
-        requires_ely_by_agent: true,
+        agent_api: None,
     };
     for (os, architecture) in [
         (OperatingSystem::Windows, Architecture::X86_64),

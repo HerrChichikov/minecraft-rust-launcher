@@ -47,8 +47,10 @@ pub enum LauncherError {
     AuthNetwork,
     #[error("invalid authentication service response")]
     AuthProtocol,
-    #[error("the authentication challenge expired")]
-    AuthChallengeExpired,
+    #[error("authentication requests are temporarily limited")]
+    AuthThrottled,
+    #[error("game profile is unavailable")]
+    GameProfileUnavailable,
     #[error("authentication is already in progress")]
     AuthBusy,
     #[error("the authentication flow is unsupported")]

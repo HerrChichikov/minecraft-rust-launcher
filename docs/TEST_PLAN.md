@@ -1,6 +1,8 @@
 # План тестирования
 
-Статус: план полного MVP. Реальные проверки Phase 2 перечислены в [review](PHASE_2_REVIEW.md); остальные строки не означают готовую реализацию. Phase 0 — отдельно в [историческом review](PHASE_0_REVIEW.md). Unit/integration tests не зависят от доступности Mojang/Ely.by; network e2e запускаются отдельным заданием.
+Статус: план полного MVP. Реальные проверки Phase 2 перечислены в [review](PHASE_2_REVIEW.md); остальные строки не означают готовую реализацию. Phase 0 — отдельно в [историческом review](PHASE_0_REVIEW.md). Unit/integration tests не зависят от доступности сторонних служб авторизации; network e2e запускаются отдельным заданием.
+
+Проверки собственного аккаунта, Authlib Injector и PostgreSQL описаны в [mine_go_auth](https://github.com/HerrChichikov/mine_go_auth). Упоминания Ely.by в отчётах Phase 4–6 относятся к прежней реализации.
 
 ## Матрица
 
@@ -40,7 +42,7 @@
 
 Чистая VM/машина без system Java → установить пакет → создать профиль → development login → скачать официальный runtime/игру → главное меню Minecraft → создать/открыть локальный тестовый мир → закрыть игру → убедиться в Ready и exit status → повторный запуск без повторного download → испортить один cache object → repair → запустить снова. Отдельно cancel/restart download и max/min RAM.
 
-Для production дополнительно реальный Ely.by login/refresh/restart/logout, agent SHA256 check, подключение к согласованному серверу с правильной server-side auth, профиль/скины и secure-profile/chat поведение. Token visibility/log inspection обязательны. Не используем production worlds для stop/crash tests.
+Для production дополнительно реальный вход в mine_go_auth, ротация, восстановление сессии и отзыв, agent SHA256 check, подключение к согласованному серверу с правильной server-side auth, профиль/скины и secure-profile/chat поведение. Token visibility/log inspection обязательны. Не используем production worlds для stop/crash tests.
 
 Каждый smoke report: commit, artifact hash, OS/build/arch, JVM version/arch, GPU/driver, сценарий, exit outcome, sanitized logs, pass/fail. Статус «поддерживается» только после pass; неподтверждённые targets остаются planned.
 

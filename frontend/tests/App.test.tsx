@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from '../src/app/App';
-import authContract from '../../tests/contracts/auth.v1.json';
+import authContract from '../../tests/contracts/auth.v2.json';
 import { foundationSnapshot, workspaceFixture } from './fixtures';
 
 vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn() }));
@@ -15,7 +15,18 @@ const channels = new Map<string, (event: Event<unknown>) => void>();
 const response = (command: string) => {
   if (command === 'get_snapshot') return foundationSnapshot;
   if (command === 'get_workspace') return workspaceFixture;
-  if (command === 'get_auth') return authContract;
+  if (command === 'get_auth')
+    return {
+      ...authContract,
+      providers: [
+        {
+          ...authContract.providers[0],
+          available: true,
+          flows: ['password'],
+          unavailableReason: null,
+        },
+      ],
+    };
   return null;
 };
 
@@ -48,17 +59,17 @@ describe('launcher screens', () => {
     await userEvent.click(play);
     expect(screen.getByRole('heading', { level: 1, name: 'Аккаунт' })).toHaveFocus();
     expect(screen.getByRole('button', { name: 'Аккаунт' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByLabelText('Пароль Ely.by')).toBeInTheDocument();
+    expect(screen.getByLabelText('Пароль')).toBeInTheDocument();
     expect(invoke).not.toHaveBeenCalledWith('start_game', expect.anything());
-    await userEvent.type(screen.getByLabelText('Пароль Ely.by'), 'draft-fixture-password');
+    await userEvent.type(screen.getByLabelText('Пароль'), 'draft-fixture-password');
     await userEvent.click(screen.getByRole('button', { name: 'Настройки' }));
     await userEvent.click(screen.getByRole('button', { name: 'Аккаунт' }));
-    expect(screen.getByLabelText('Пароль Ely.by')).toHaveValue('');
+    expect(screen.getByLabelText('Пароль')).toHaveValue('');
   });
 
   it('retains installer progress and blocks settings edits across screen changes', async () => {
     render(<App />);
-    await waitFor(() => expect(channels.size).toBe(2));
+    await waitFor(() => expect(channels.size).toBe(3));
     await userEvent.click(screen.getByRole('button', { name: 'Настройки' }));
     expect(screen.getByRole('heading', { level: 1, name: 'Настройки' })).toHaveFocus();
     const ram = await screen.findByLabelText('Максимум RAM, МиБ');
@@ -88,7 +99,7 @@ describe('launcher screens', () => {
     await userEvent.click(screen.getByRole('button', { name: /^Игра/ }));
     expect(screen.getByRole('progressbar')).toHaveValue(40);
     expect(screen.getByRole('button', { name: 'Отменить' })).toBeEnabled();
-    expect(vi.mocked(listen)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(listen)).toHaveBeenCalledTimes(3);
   });
 
   it('recovers from a backend failure on explicit retry', async () => {

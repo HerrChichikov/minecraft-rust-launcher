@@ -1,5 +1,7 @@
 # Pinned Authlib Injector
 
+Текущие параметры для платформенного токена и корня сервера описаны в [mine_go_auth](https://github.com/HerrChichikov/mine_go_auth). Ниже приведены сведения о закреплённом артефакте и исторической проверке Phase 6.
+
 Phase 4 фиксирует upstream binary без модификаций; в launcher packages JAR отсутствует. Core downloader вызывается только явным installer/launch workflow или developer smoke; автоматического latest update нет.
 
 | Поле | Значение |

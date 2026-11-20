@@ -1,36 +1,35 @@
 use super::snapshot::ApiError;
 use launcher_core::{
-    auth::{AuthService, AuthSnapshot, LaunchIdentity, SecretString},
-    core::LauncherError,
+    auth::{AuthService, AuthSnapshot, LaunchIdentity, PROVIDER_ID, SecretString},
+    core::{LauncherError, Result as CoreResult},
 };
 use serde::Deserialize;
 use std::sync::Mutex;
-use tauri::{AppHandle, Manager, Runtime, State};
+use tauri::{AppHandle, Emitter, Manager, Runtime, State};
+
 #[derive(Debug)]
 pub(crate) struct AuthState(Mutex<AuthService>);
 impl AuthState {
-    pub(crate) fn launch_session(&self) -> launcher_core::core::Result<(u32, bool)> {
-        let snapshot = self
-            .0
+    pub(crate) fn launch_session(&self) -> CoreResult<(u32, bool)> {
+        self.0
             .try_lock()
             .map_err(|_| LauncherError::AuthBusy)?
-            .snapshot();
-        let account = snapshot
-            .account
-            .ok_or(LauncherError::AuthenticationRequired)?;
-        Ok((snapshot.revision, account.provider_id == "ely-by"))
+            .launch_requirement()
     }
 
-    pub(crate) fn with_launch_identity<T>(
+    pub(crate) fn with_launch_identity<T, R: Runtime>(
         &self,
+        app: &AppHandle<R>,
         revision: u32,
-        launch: impl FnOnce(LaunchIdentity) -> launcher_core::core::Result<T>,
-    ) -> launcher_core::core::Result<T> {
+        launch: impl FnOnce(LaunchIdentity) -> CoreResult<T>,
+    ) -> CoreResult<T> {
         let mut service = self.0.try_lock().map_err(|_| LauncherError::AuthBusy)?;
-        if service.snapshot().revision != revision {
+        if service.launch_requirement()?.0 != revision {
             return Err(LauncherError::RevisionConflict);
         }
-        launch(service.launch_identity()?)
+        let identity = service.launch_identity();
+        publish_change(app, revision, &service);
+        launch(identity?)
     }
 }
 impl Default for AuthState {
@@ -44,6 +43,14 @@ impl Default for AuthState {
         Self(Mutex::new(service))
     }
 }
+
+fn publish_change<R: Runtime>(app: &AppHandle<R>, previous: u32, service: &AuthService) {
+    let snapshot = service.snapshot();
+    if snapshot.revision != previous {
+        let _ = app.emit_to("main", "launcher://auth", snapshot);
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(tag = "flow", rename_all = "snake_case", deny_unknown_fields)]
 pub enum LoginInput {
@@ -70,20 +77,31 @@ pub struct RevisionRequest {
 }
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub struct ContinueRequest {
+pub struct RegisterRequest {
     expected_revision: u32,
-    challenge_id: String,
-    totp: SecretString,
+    nickname: String,
+    password: SecretString,
+    email: String,
+    invitation_code: SecretString,
+}
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SelectRequest {
+    expected_revision: u32,
+    game_profile_id: String,
 }
 
 async fn execute<R: Runtime>(
     app: AppHandle<R>,
-    action: impl FnOnce(&mut AuthService) -> launcher_core::core::Result<AuthSnapshot> + Send + 'static,
+    action: impl FnOnce(&mut AuthService) -> CoreResult<AuthSnapshot> + Send + 'static,
 ) -> Result<AuthSnapshot, ApiError> {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<AuthState>();
         let mut service = state.0.try_lock().map_err(|_| LauncherError::AuthBusy)?;
-        action(&mut service)
+        let previous = service.snapshot().revision;
+        let result = action(&mut service);
+        publish_change(&app, previous, &service);
+        result
     })
     .await
     .map_err(|_| ApiError::from(LauncherError::AuthBusy))?
@@ -94,10 +112,7 @@ pub fn get_auth(state: State<'_, AuthState>) -> Result<AuthSnapshot, ApiError> {
     state
         .0
         .try_lock()
-        .map(|mut s| {
-            s.expire_challenge();
-            s.snapshot()
-        })
+        .map(|s| s.snapshot())
         .map_err(|_| LauncherError::AuthBusy.into())
 }
 #[tauri::command]
@@ -105,14 +120,15 @@ pub async fn login<R: Runtime>(
     app: AppHandle<R>,
     request: LoginRequest,
 ) -> Result<AuthSnapshot, ApiError> {
-    let outcome = execute(app.clone(), move |s| {
+    execute(app, move |s| {
         match (request.provider_id.as_str(), request.input) {
-            ("ely-by", LoginInput::Password { login, password }) => s.login_password_with_remember(
-                request.expected_revision,
-                login,
-                password,
-                request.remember,
-            ),
+            (PROVIDER_ID, LoginInput::Password { login, password }) => s
+                .login_password_with_remember(
+                    request.expected_revision,
+                    &login,
+                    password,
+                    request.remember,
+                ),
             #[cfg(all(debug_assertions, feature = "dev-auth"))]
             (provider, LoginInput::DevelopmentNickname { nickname }) => {
                 if request.remember {
@@ -123,54 +139,37 @@ pub async fn login<R: Runtime>(
             _ => Err(LauncherError::UnsupportedAuthFlow),
         }
     })
-    .await?;
-    if outcome.challenge.is_some() {
-        tauri::async_runtime::spawn(async move {
-            tokio::time::sleep(std::time::Duration::from_secs(120)).await;
-            loop {
-                let finished = {
-                    let state = app.state::<AuthState>();
-                    match state.0.try_lock() {
-                        Ok(mut s) => {
-                            s.expire_challenge();
-                            true
-                        }
-                        Err(std::sync::TryLockError::Poisoned(p)) => {
-                            p.into_inner().expire_challenge();
-                            true
-                        }
-                        Err(std::sync::TryLockError::WouldBlock) => false,
-                    }
-                };
-                if finished {
-                    break;
-                }
-                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-            }
-        });
-    }
-    Ok(outcome)
+    .await
 }
 #[tauri::command]
-pub async fn continue_login<R: Runtime>(
+pub async fn register_account<R: Runtime>(
     app: AppHandle<R>,
-    request: ContinueRequest,
+    request: RegisterRequest,
 ) -> Result<AuthSnapshot, ApiError> {
     execute(app, move |s| {
-        let id = request
-            .challenge_id
-            .parse()
-            .map_err(|_| LauncherError::AuthChallengeExpired)?;
-        s.continue_login(request.expected_revision, id, request.totp)
+        s.register(
+            request.expected_revision,
+            &request.nickname,
+            request.password,
+            &request.email,
+            request.invitation_code.expose_secret(),
+        )
     })
     .await
 }
 #[tauri::command]
-pub async fn cancel_login<R: Runtime>(
+pub async fn select_game_profile<R: Runtime>(
     app: AppHandle<R>,
-    request: RevisionRequest,
+    request: SelectRequest,
 ) -> Result<AuthSnapshot, ApiError> {
-    execute(app, move |s| s.cancel_login(request.expected_revision)).await
+    execute(app, move |s| {
+        let id = request
+            .game_profile_id
+            .parse()
+            .map_err(|_| LauncherError::GameProfileUnavailable)?;
+        s.select_profile(request.expected_revision, id)
+    })
+    .await
 }
 #[tauri::command]
 pub async fn refresh_auth<R: Runtime>(
@@ -193,23 +192,24 @@ pub async fn restore_auth<R: Runtime>(
 ) -> Result<AuthSnapshot, ApiError> {
     execute(app, move |s| s.restore(request.expected_revision)).await
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn public_auth_contract_matches_frontend_fixture() -> Result<(), Box<dyn std::error::Error>> {
         let mut actual = serde_json::to_value(AuthService::default().snapshot())?;
-        actual["providers"] = serde_json::Value::Array(
-            actual["providers"]
-                .as_array()
-                .ok_or("providers missing")?
-                .iter()
-                .filter(|p| p["id"] == "ely-by")
-                .cloned()
-                .collect(),
-        );
         let expected: serde_json::Value =
-            serde_json::from_str(include_str!("../../../tests/contracts/auth.v1.json"))?;
+            serde_json::from_str(include_str!("../../../tests/contracts/auth.v2.json"))?;
+        let providers = actual["providers"]
+            .as_array_mut()
+            .ok_or("providers missing")?;
+        providers.retain(|p| p["id"] == PROVIDER_ID);
+        if let Some(url) = option_env!("LAUNCHER_AUTH_URL") {
+            let available = launcher_core::auth::PlatformClient::new(url).is_ok();
+            assert_eq!(providers[0]["available"], available);
+            providers[0] = expected["providers"][0].clone();
+        }
         assert_eq!(actual, expected);
         Ok(())
     }

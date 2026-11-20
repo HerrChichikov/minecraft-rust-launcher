@@ -1,29 +1,37 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
 export interface AuthSnapshot {
-  schemaVersion: 1;
+  schemaVersion: 2;
   revision: number;
   persistence: 'memory_only' | 'system_credential_store';
   rememberSupported: boolean;
   providers: {
-    id: 'ely-by' | 'development-mock';
+    id: 'platform' | 'development-mock';
     available: boolean;
     development: boolean;
     flows: string[];
     unavailableReason: string | null;
   }[];
   account: {
-    providerId: 'ely-by' | 'development-mock';
+    providerId: 'platform' | 'development-mock';
     playerId: string;
     playerName: string;
     development: boolean;
   } | null;
-  challenge: { id: string; providerId: 'ely-by'; expiresInSeconds: number } | null;
+  gameProfiles: GameProfile[];
+  selectedGameProfileId: string | null;
   notice:
+    | 'registered'
+    | 'game_profiles_unavailable'
     | 'remote_logout_failed'
     | 'credential_store_unavailable'
     | 'credential_delete_failed'
     | 'logout_cleanup_failed'
     | null;
+}
+export interface GameProfile {
+  id: string;
+  realm: string;
+  nickname: string;
 }
 const record = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -36,7 +44,7 @@ export class AuthError extends Error {
 export function parseAuth(v: unknown): AuthSnapshot {
   if (
     !record(v) ||
-    v.schemaVersion !== 1 ||
+    v.schemaVersion !== 2 ||
     !Number.isSafeInteger(v.revision) ||
     (v.revision as number) < 0 ||
     (v.persistence !== 'memory_only' && v.persistence !== 'system_credential_store') ||
@@ -44,6 +52,8 @@ export function parseAuth(v: unknown): AuthSnapshot {
     !Array.isArray(v.providers) ||
     (v.notice !== null &&
       ![
+        'registered',
+        'game_profiles_unavailable',
         'remote_logout_failed',
         'credential_store_unavailable',
         'credential_delete_failed',
@@ -55,21 +65,19 @@ export function parseAuth(v: unknown): AuthSnapshot {
   const providers: AuthSnapshot['providers'] = v.providers.map((p: unknown) => {
     if (
       !record(p) ||
-      (p.id !== 'ely-by' && p.id !== 'development-mock') ||
+      (p.id !== 'platform' && p.id !== 'development-mock') ||
       ids.has(p.id) ||
       typeof p.available !== 'boolean' ||
       typeof p.development !== 'boolean' ||
       !Array.isArray(p.flows) ||
-      !p.flows.every((f: unknown) => f === 'development_nickname' || f === 'password_totp') ||
+      !p.flows.every((f: unknown) => f === 'development_nickname' || f === 'password') ||
       (p.unavailableReason !== null && typeof p.unavailableReason !== 'string')
     )
       throw new AuthError('invalid_response');
     if (
-      p.id === 'ely-by' &&
+      p.id === 'platform' &&
       (p.development ||
-        (p.available
-          ? p.flows.length !== 1 || p.flows[0] !== 'password_totp'
-          : p.flows.length !== 0))
+        (p.available ? p.flows.length !== 1 || p.flows[0] !== 'password' : p.flows.length !== 0))
     )
       throw new AuthError('invalid_response');
     if (
@@ -89,19 +97,21 @@ export function parseAuth(v: unknown): AuthSnapshot {
       unavailableReason: p.unavailableReason,
     };
   });
-  if (!ids.has('ely-by')) throw new AuthError('invalid_response');
+  if (!ids.has('platform')) throw new AuthError('invalid_response');
   let account: AuthSnapshot['account'] = null;
   if (v.account !== null) {
     const a = v.account;
     if (
       !record(a) ||
-      (a.providerId !== 'ely-by' && a.providerId !== 'development-mock') ||
-      !ids.has(a.providerId) ||
+      (a.providerId !== 'platform' && a.providerId !== 'development-mock') ||
+      !providers.some((p) => p.id === a.providerId && p.available) ||
       a.development !== (a.providerId === 'development-mock') ||
       typeof a.playerId !== 'string' ||
       !uuid.test(a.playerId) ||
       typeof a.playerName !== 'string' ||
-      !/^[A-Za-z0-9_]{3,16}$/.test(a.playerName)
+      (a.providerId === 'development-mock'
+        ? !/^[A-Za-z0-9_]{3,16}$/.test(a.playerName)
+        : a.playerName.length === 0 || [...a.playerName].length > 50)
     )
       throw new AuthError('invalid_response');
     account = {
@@ -113,33 +123,43 @@ export function parseAuth(v: unknown): AuthSnapshot {
   }
   if (
     v.persistence === 'system_credential_store' &&
-    (!v.rememberSupported || account?.providerId !== 'ely-by')
+    (!v.rememberSupported || account?.providerId !== 'platform')
   )
     throw new AuthError('invalid_response');
-  let challenge: AuthSnapshot['challenge'] = null;
-  if (v.challenge !== null) {
-    const c = v.challenge;
+  if (!Array.isArray(v.gameProfiles)) throw new AuthError('invalid_response');
+  const gameProfileIds = new Set<string>();
+  const gameProfiles: GameProfile[] = v.gameProfiles.map((profile: unknown) => {
     if (
-      !record(c) ||
-      typeof c.id !== 'string' ||
-      !uuid.test(c.id) ||
-      c.providerId !== 'ely-by' ||
-      typeof c.expiresInSeconds !== 'number' ||
-      !Number.isSafeInteger(c.expiresInSeconds) ||
-      c.expiresInSeconds < 0 ||
-      c.expiresInSeconds > 120
+      account?.providerId !== 'platform' ||
+      !record(profile) ||
+      typeof profile.id !== 'string' ||
+      !uuid.test(profile.id) ||
+      gameProfileIds.has(profile.id) ||
+      typeof profile.realm !== 'string' ||
+      !/^[A-Za-z0-9_-]{1,64}$/.test(profile.realm) ||
+      typeof profile.nickname !== 'string' ||
+      !/^[A-Za-z0-9_]{3,16}$/.test(profile.nickname)
     )
       throw new AuthError('invalid_response');
-    challenge = { id: c.id, providerId: 'ely-by', expiresInSeconds: c.expiresInSeconds };
+    gameProfileIds.add(profile.id);
+    return { id: profile.id, realm: profile.realm, nickname: profile.nickname };
+  });
+  const selectedGameProfileId = v.selectedGameProfileId;
+  if (
+    selectedGameProfileId !== null &&
+    (typeof selectedGameProfileId !== 'string' || !gameProfileIds.has(selectedGameProfileId))
+  ) {
+    throw new AuthError('invalid_response');
   }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     revision: v.revision as number,
     persistence: v.persistence,
     rememberSupported: v.rememberSupported,
     providers,
     account,
-    challenge,
+    gameProfiles,
+    selectedGameProfileId,
     notice: v.notice as AuthSnapshot['notice'],
   };
 }
@@ -157,7 +177,8 @@ async function call(command: string, request?: object): Promise<AuthSnapshot> {
       'auth_rejected',
       'auth_network',
       'auth_protocol',
-      'auth_challenge_expired',
+      'auth_throttled',
+      'game_profile_unavailable',
       'authentication_required',
       'unsupported_auth_flow',
       'credential_store_unavailable',
@@ -181,14 +202,20 @@ export const login = (s: AuthSnapshot, nickname: string) =>
 export const loginPassword = (s: AuthSnapshot, login: string, password: string, remember = false) =>
   call('login', {
     expectedRevision: s.revision,
-    providerId: 'ely-by',
+    providerId: 'platform',
     remember,
     input: { flow: 'password', login, password },
   });
-export const continueLogin = (s: AuthSnapshot, totp: string) =>
-  call('continue_login', { expectedRevision: s.revision, challengeId: s.challenge?.id, totp });
-export const cancelLogin = (s: AuthSnapshot) =>
-  call('cancel_login', { expectedRevision: s.revision });
+export interface Registration {
+  nickname: string;
+  password: string;
+  email: string;
+  invitationCode: string;
+}
+export const registerAccount = (s: AuthSnapshot, fields: Registration) =>
+  call('register_account', { expectedRevision: s.revision, ...fields });
+export const selectGameProfile = (s: AuthSnapshot, gameProfileId: string) =>
+  call('select_game_profile', { expectedRevision: s.revision, gameProfileId });
 export const refreshAuth = (s: AuthSnapshot) =>
   call('refresh_auth', { expectedRevision: s.revision });
 export const logout = (s: AuthSnapshot) => call('logout', { expectedRevision: s.revision });

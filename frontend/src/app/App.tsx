@@ -54,6 +54,9 @@ function Launcher({ snapshot }: { snapshot: FoundationSnapshot }) {
   const { workspace } = workspaceModel;
   const profile = workspace?.profiles.find((item) => item.id === workspace.activeProfileId);
   const account = auth.snapshot?.account;
+  const selectedGameProfile = auth.snapshot?.gameProfiles.find(
+    (p) => p.id === auth.snapshot?.selectedGameProfileId,
+  );
   const operationActive = installation.active || game.active;
   const prepared = Boolean(
     workspace?.installationRecorded ||
@@ -127,7 +130,7 @@ function Launcher({ snapshot }: { snapshot: FoundationSnapshot }) {
           <span className="account-text">
             <strong>{account?.playerName ?? 'Гость'}</strong>
             <small>
-              {account?.development ? 'Тестовый вход' : account ? 'Ely.by' : 'Войти в аккаунт'}
+              {account?.development ? 'Тестовый вход' : account ? 'Alpha' : 'Войти в аккаунт'}
             </small>
           </span>
         </button>
@@ -176,6 +179,10 @@ function Launcher({ snapshot }: { snapshot: FoundationSnapshot }) {
                   workspace={workspace}
                   available={snapshot.features.gameLaunch}
                   signedIn={Boolean(account)}
+                  profileSelectionRequired={Boolean(
+                    account && !account.development && !selectedGameProfile,
+                  )}
+                  realm={selectedGameProfile?.realm}
                   onSignIn={() => navigate('account')}
                   installActive={installation.active}
                   controlsBusy={workspaceModel.busy || auth.busy}

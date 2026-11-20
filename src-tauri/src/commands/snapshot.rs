@@ -55,9 +55,14 @@ impl From<LauncherError> for ApiError {
                 message_key: "errors.authProtocol",
                 retryable: false,
             },
-            LauncherError::AuthChallengeExpired => Self {
-                code: "auth_challenge_expired",
-                message_key: "errors.authChallengeExpired",
+            LauncherError::AuthThrottled => Self {
+                code: "auth_throttled",
+                message_key: "errors.authThrottled",
+                retryable: false,
+            },
+            LauncherError::GameProfileUnavailable => Self {
+                code: "game_profile_unavailable",
+                message_key: "errors.gameProfileUnavailable",
                 retryable: false,
             },
             LauncherError::AuthBusy => Self {

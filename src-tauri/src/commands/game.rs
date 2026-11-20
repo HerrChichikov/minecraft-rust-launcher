@@ -156,7 +156,7 @@ pub async fn start_game<R: Runtime>(
     if app.state::<GameState>().active() {
         return Err(Error::GameBusy.into());
     }
-    let (auth_revision, ely_by) = app.state::<AuthState>().launch_session()?;
+    let (auth_revision, needs_agent) = app.state::<AuthState>().launch_session()?;
     let root_id = request.root_id;
     let (engine, profile, policy) = execute(app.clone(), move |workspace| {
         let snapshot = workspace.snapshot()?;
@@ -213,7 +213,7 @@ pub async fn start_game<R: Runtime>(
                 policy,
                 context,
                 &LaunchProgress { app: &app, run_id },
-                ely_by,
+                needs_agent,
             )?;
             drop(engine);
             cancel.check()?;
@@ -222,11 +222,11 @@ pub async fn start_game<R: Runtime>(
                     status.stage = Stage::Launching;
                 }
             });
-            let game = app
-                .state::<AuthState>()
-                .with_launch_identity(auth_revision, |identity| {
-                    prepared.spawn(identity, &cancel)
-                })?;
+            let game =
+                app.state::<AuthState>()
+                    .with_launch_identity(&app, auth_revision, |identity| {
+                        prepared.spawn(identity, &cancel)
+                    })?;
             transition(&app, run_id, |status| {
                 if status.stage != Stage::Stopping {
                     status.stage = Stage::Running;

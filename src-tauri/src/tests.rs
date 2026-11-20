@@ -258,8 +258,8 @@ fn authentication_registry_acl_and_release_mock_gate() -> Result<(), Box<dyn std
         "get_auth",
         "login",
         "logout",
-        "continue_login",
-        "cancel_login",
+        "register_account",
+        "select_game_profile",
         "refresh_auth",
         "restore_auth",
     ] {
@@ -313,12 +313,12 @@ fn authentication_registry_acl_and_release_mock_gate() -> Result<(), Box<dyn std
 }
 
 #[test]
-fn ely_inputs_and_unknown_challenges_fail_before_any_network_or_storage()
+fn invalid_platform_inputs_and_unsigned_profile_selection_fail_before_any_network_or_storage()
 -> Result<(), Box<dyn std::error::Error>> {
     let app = app()?;
     let main = tauri::WebviewWindowBuilder::new(&app.app, "main", Default::default()).build()?;
-    assert!(call(&main,"login",serde_json::json!({"request":{"expectedRevision":0,"providerId":"ely-by","input":{"flow":"password","login":"","password":"fixture-password"}}})).is_err());
-    assert!(call(&main,"continue_login",serde_json::json!({"request":{"expectedRevision":0,"challengeId":"12345678-1234-4234-8123-123456789abc","totp":"123456"}})).is_err());
+    assert!(call(&main,"login",serde_json::json!({"request":{"expectedRevision":0,"providerId":"platform","input":{"flow":"password","login":"","password":"fixture-password"}}})).is_err());
+    assert!(call(&main,"select_game_profile",serde_json::json!({"request":{"expectedRevision":0,"gameProfileId":"12345678-1234-4234-8123-123456789abc"}})).is_err());
     assert!(
         call(
             &main,

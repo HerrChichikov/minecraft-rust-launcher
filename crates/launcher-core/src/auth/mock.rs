@@ -41,7 +41,7 @@ impl MockAuthProvider {
             profile: session.profile.clone(),
             access_token: SecretString::new(session.access_token.expose_secret().into()),
             user_type: "mojang".into(),
-            requires_ely_by_agent: false,
+            agent_api: None,
         })
     }
 }
